@@ -1392,19 +1392,30 @@ async function fetchTodoistTasks() {
     // DEBUG: log resumo de hoje pra diagnóstico
     const todayStart = startOfDay(new Date()).getTime();
     const tomorrowStart = todayStart + 86400000;
-    const todayTasks = todoist.completedMonth.filter(c => {
+    const todayAll = todoist.completedMonth.filter(c => {
       const dateStr = c.completed_at || c.completed_date || c.date_completed;
       if (!dateStr) return false;
       const t = new Date(dateStr).getTime();
       return t >= todayStart && t < tomorrowStart;
     });
-    console.log(`[Painel] Hoje range: ${new Date(todayStart).toISOString()} → ${new Date(tomorrowStart).toISOString()}`);
-    console.log(`[Painel] Tasks contadas como hoje: ${todayTasks.length}`);
-    console.log(`[Painel] Sample completed_at values (primeiras 10):`,
-      todoist.completedMonth.slice(0, 10).map(c => c.completed_at || c.completed_date));
-    if (todayTasks.length > 0) {
-      console.log(`[Painel] Hoje (sample):`, todayTasks[0]);
+    const todayMine = todayAll.filter(c => {
+      if (!todoist.userId) return true;
+      const uid = c.completed_by_uid || (c.item_object && c.item_object.completed_by_uid);
+      return !uid || String(uid) === String(todoist.userId);
+    });
+    // Conta por UID pra ver quem mais completou
+    const byUid = {};
+    for (const c of todoist.completedMonth) {
+      const uid = String(c.completed_by_uid || 'unknown');
+      byUid[uid] = (byUid[uid] || 0) + 1;
     }
+    console.log(`[Painel] Hoje range LOCAL: ${new Date(todayStart).toLocaleString()} → ${new Date(tomorrowStart).toLocaleString()}`);
+    console.log(`[Painel] meu userId: ${todoist.userId}`);
+    console.log(`[Painel] Conclusões por UID no mês:`, byUid);
+    console.log(`[Painel] Hoje TOTAL (sem filtro UID): ${todayAll.length}`);
+    console.log(`[Painel] Hoje MINHAS (com filtro UID): ${todayMine.length}`);
+    console.log(`[Painel] Today completed_at + completed_by_uid:`,
+      todayAll.map(c => ({ at: c.completed_at, by: c.completed_by_uid, content: (c.content || '').slice(0,40) })));
 
     todoist.lastFetch = Date.now();
     saveTodoistConfig();
