@@ -1070,6 +1070,9 @@ body.light .prio-pill.p4 { color: var(--text-muted); }
   <!-- TODOIST REPORTS -->
   <div class="card" id="todoistReportCard" style="margin-bottom: 16px; display:none;">
     <div class="card-title">📊 Relatórios Todoist</div>
+    <div style="font-size:11px; color: var(--text-dim); margin-bottom: 10px; line-height: 1.5;">
+      ⓘ Conta apenas tarefas <strong>arquivadas permanentemente</strong> — recorrentes diárias (ex: tomar remédios, beber água) não entram porque o Todoist apenas reagenda elas pra próxima ocorrência em vez de "fechar" de fato. O número difere do badge "X/8" do app por isso.
+    </div>
     <table class="todoist-report-table">
       <thead>
         <tr>
@@ -1394,24 +1397,27 @@ async function fetchTodoistTasks() {
 
     if (!syncWorked) {
       try {
-        let cursor = null;
-        let pageCount = 0;
-        do {
-          const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
-          const comp = await todoistRequest(
-            `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200${cursorParam}`
-          );
-          const items = (comp && (comp.items || comp.results)) || [];
-          todoist.completedMonth.push(...items);
-          cursor = comp && comp.next_cursor;
-          pageCount++;
-          if (pageCount > 20) break;
-        } while (cursor);
+        // Single call sem paginação — 500 é mais que suficiente pra 1 mês
+        const comp = await todoistRequest(
+          `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=500`
+        );
+        const items = (comp && (comp.items || comp.results)) || [];
+        todoist.completedMonth.push(...items);
         console.log(`[Painel] v1 completed fetched (sem recorrentes): ${todoist.completedMonth.length} tasks`);
       } catch (e) {
-        console.warn('[Painel] Erro ao buscar completed (ambos endpoints falharam):', e.message);
+        console.warn('[Painel] Erro ao buscar completed:', e.message);
       }
     }
+
+    // Dedup por id pra garantir que não tem duplicata acumulada
+    const seenIds = new Set();
+    todoist.completedMonth = todoist.completedMonth.filter(c => {
+      const id = c.id || c.task_id;
+      if (!id) return true;
+      if (seenIds.has(id)) return false;
+      seenIds.add(id);
+      return true;
+    });
 
     // Tenta pegar a estatística de karma/produtividade (que conta recorrentes igual o "X/8" do Todoist)
     todoist.dailyStats = null;
