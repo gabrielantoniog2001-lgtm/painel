@@ -1397,13 +1397,26 @@ async function fetchTodoistTasks() {
 
     if (!syncWorked) {
       try {
-        // Single call sem paginação — 500 é mais que suficiente pra 1 mês
-        const comp = await todoistRequest(
-          `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=500`
-        );
-        const items = (comp && (comp.items || comp.results)) || [];
-        todoist.completedMonth.push(...items);
-        console.log(`[Painel] v1 completed fetched (sem recorrentes): ${todoist.completedMonth.length} tasks`);
+        // Paginação via cursor (Todoist v1 limita a 200 por página)
+        let cursor = null;
+        let pageCount = 0;
+        const seenCursors = new Set();
+        do {
+          if (cursor && seenCursors.has(cursor)) break; // safety: não repete o mesmo cursor
+          if (cursor) seenCursors.add(cursor);
+          const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
+          const comp = await todoistRequest(
+            `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200${cursorParam}`
+          );
+          const items = (comp && (comp.items || comp.results)) || [];
+          todoist.completedMonth.push(...items);
+          const nextCursor = comp && comp.next_cursor;
+          if (!nextCursor || nextCursor === cursor) break;
+          cursor = nextCursor;
+          pageCount++;
+          if (pageCount > 20) break;
+        } while (cursor);
+        console.log(`[Painel] v1 completed fetched (sem recorrentes): ${todoist.completedMonth.length} tasks em ${pageCount + 1} página(s)`);
       } catch (e) {
         console.warn('[Painel] Erro ao buscar completed:', e.message);
       }
