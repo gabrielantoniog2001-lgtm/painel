@@ -1245,6 +1245,7 @@ const todoist = {
   projectMap: {},     // { id: { name, color } }
   completedMonth: [], // todas as completed do último mês (filtramos depois por dia/semana)
   activityMonth: [],  // eventos de "atrasou tarefa" do último mês
+  dailyStats: null,   // stats de karma/produtividade (inclui recorrentes)
   status: 'idle',
   lastFetch: null
 };
@@ -1409,6 +1410,27 @@ async function fetchTodoistTasks() {
         console.log(`[Painel] v1 completed fetched (sem recorrentes): ${todoist.completedMonth.length} tasks`);
       } catch (e) {
         console.warn('[Painel] Erro ao buscar completed (ambos endpoints falharam):', e.message);
+      }
+    }
+
+    // Tenta pegar a estatística de karma/produtividade (que conta recorrentes igual o "X/8" do Todoist)
+    todoist.dailyStats = null;
+    const statEndpoints = [
+      'https://api.todoist.com/api/v1/productivity_stats',
+      'https://api.todoist.com/api/v1/karma',
+      'https://api.todoist.com/api/v1/users/me/stats',
+      'https://api.todoist.com/sync/v9/completed/get_stats'
+    ];
+    for (const endpoint of statEndpoints) {
+      try {
+        const stats = await todoistRequest(endpoint);
+        if (stats && (stats.days_items || stats.karma_last_update || stats.completed_count !== undefined)) {
+          todoist.dailyStats = stats;
+          console.log(`[Painel] Stats encontrada em: ${endpoint}`, stats);
+          break;
+        }
+      } catch (e) {
+        console.log(`[Painel] Stats endpoint ${endpoint.replace('https://api.todoist.com','')} → ${e.message}`);
       }
     }
 
