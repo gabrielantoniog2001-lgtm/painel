@@ -1,0 +1,3138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de Produtividade</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIyIiBmaWxsPSIjMGQwZjE0Ii8+CiAgPHJlY3QgeD0iNDQiIHk9IjE0IiB3aWR0aD0iMTIiIGhlaWdodD0iNiIgcng9IjIiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIyMiIgeT0iMjIiIHdpZHRoPSIxMCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSIjZmZmIiB0cmFuc2Zvcm09InJvdGF0ZSgtNDAgMjcgMjQuNSkiLz4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjU4IiByPSIyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjUiLz4KICA8bGluZSB4MT0iNTAiIHkxPSI0MCIgeDI9IjUwIiB5Mj0iNDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIHgxPSI1MCIgeTE9IjcyIiB4Mj0iNTAiIHkyPSI3NiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjMyIiB5MT0iNTgiIHgyPSIzNiIgeTI9IjU4IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iNjQiIHkxPSI1OCIgeDI9IjY4IiB5Mj0iNTgiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwb2x5bGluZSBwb2ludHM9IjM5LDU4IDQ3LDY2IDYzLDQ5IiBzdHJva2U9IiMyMmM1NWUiIHN0cm9rZS13aWR0aD0iNi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #161922;
+  --surface-2: #1d2029;
+  --border: #262b36;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+  --accent: #22c55e;
+  --accent-dim: rgba(34,197,94,.15);
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+  --purple: #a855f7;
+  --grid: rgba(255,255,255,0.06);
+  --tooltip-bg: #1d2029;
+  --tooltip-border: #262b36;
+  --shadow: 0 1px 2px rgba(0,0,0,0);
+}
+body.light {
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #eef0f5;
+  --border: #dde1ea;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --text-dim: #9ca3af;
+  --accent: #16a34a;
+  --accent-dim: rgba(22,163,74,.18);
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+  --purple: #9333ea;
+  --grid: rgba(0,0,0,0.07);
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #dde1ea;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+body.light .card { box-shadow: var(--shadow); }
+body.light kbd {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.brand-name { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
+.greeting h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.greeting p { color: var(--text-muted); }
+.date-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.date-info { text-align: right; }
+.date-info .date { font-size: 16px; font-weight: 600; }
+.date-info .day { color: var(--text-muted); font-size: 13px; }
+.theme-toggle {
+  width: 38px; height: 38px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+  transition: background .15s, transform .15s;
+  font-family: inherit;
+  padding: 0;
+}
+.theme-toggle:hover { background: var(--surface-2); transform: translateY(-1px); }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+.card-title {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.card-title.with-icon { display: flex; align-items: center; gap: 8px; }
+
+/* GRID LAYOUTS */
+.timer-row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.charts-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.heatmap-wrap {
+  overflow-x: auto;
+  padding: 8px 0 4px;
+}
+.heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 14px);
+  gap: 3px;
+  min-width: max-content;
+}
+.heatmap .cell {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  background: var(--surface-2);
+}
+.heatmap .cell.l1 { background: rgba(34,197,94,0.20); }
+.heatmap .cell.l2 { background: rgba(34,197,94,0.40); }
+.heatmap .cell.l3 { background: rgba(34,197,94,0.65); }
+.heatmap .cell.l4 { background: rgba(34,197,94,0.95); }
+.heatmap .cell.future { background: transparent; border: 1px dashed var(--border); }
+.heatmap-legend {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-muted); font-size: 11px;
+  margin-top: 8px; justify-content: flex-end;
+}
+.heatmap-legend .cell { width: 10px; height: 10px; border-radius: 2px; }
+.heatmap-months {
+  display: flex; gap: 2px;
+  color: var(--text-muted); font-size: 11px;
+  padding-left: 0; margin-bottom: 4px;
+}
+
+/* DAY DETAIL */
+.day-section {
+  margin-bottom: 18px;
+}
+.day-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.day-list {
+  display: flex; flex-direction: column;
+  gap: 2px;
+  padding-left: 4px;
+}
+.day-list .item {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px;
+  padding: 5px 0;
+  border-bottom: 1px solid transparent;
+}
+.day-list .item:hover { background: rgba(255,255,255,0.02); }
+.day-list .item .duration {
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.day-list .item .duration.muted {
+  color: var(--warning);
+}
+.day-list .empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-style: italic;
+  padding: 6px 0;
+}
+.day-total {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sleep-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+}
+.sleep-form .field { flex: 1; min-width: 200px; }
+.sleep-form .field-label {
+  font-size: 11px; color: var(--text-muted);
+  margin-bottom: 4px; display: block;
+}
+.sleep-form input[type="datetime-local"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  color-scheme: dark;
+}
+.day-summary {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 6px;
+}
+.day-nav {
+  display: flex; gap: 8px; align-items: center;
+}
+.day-nav input[type="date"] {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color-scheme: dark;
+}
+
+/* ACADEMIA */
+.gym-toggles {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.gym-toggle {
+  flex: 1; min-width: 180px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all .15s;
+}
+.gym-toggle:hover { background: var(--border); }
+.gym-toggle.done {
+  background: rgba(34,197,94,0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.gym-toggle .gym-icon { font-size: 22px; }
+.gym-toggle .gym-name { flex: 1; text-align: left; }
+.gym-toggle .gym-status {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.gym-toggle.done .gym-status { color: var(--accent); }
+.gym-form {
+  margin-top: 4px;
+  padding: 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+}
+.gym-form .field { flex: 1; min-width: 140px; }
+.gym-form .field-label {
+  font-size: 11px; color: var(--text-muted);
+  margin-bottom: 4px; display: block;
+}
+.gym-form select, .gym-form input[type="number"], .gym-form input[type="text"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  color-scheme: dark;
+}
+.gym-form .field-notes { flex: 2; min-width: 220px; }
+.gym-list-item .gym-type-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 8px;
+}
+.gym-type-pill.musc {
+  background: rgba(168,85,247,0.18);
+  color: #c084fc;
+}
+.gym-type-pill.cardio {
+  background: rgba(59,130,246,0.18);
+  color: #60a5fa;
+}
+
+/* TODOIST */
+.todoist-group-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 14px 4px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.todoist-group-header:first-child { padding-top: 4px; }
+.todoist-group-header.overdue { color: var(--danger); }
+.todoist-task {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.todoist-task:hover { background: rgba(255,255,255,0.02); }
+body.light .todoist-task:hover { background: rgba(0,0,0,0.025); }
+.todoist-task .task-checkbox {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-dim);
+  flex-shrink: 0;
+  position: relative;
+}
+.todoist-task .task-checkbox.prio-p1 { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+.todoist-task .task-checkbox.prio-p2 { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.todoist-task .task-checkbox.prio-p3 { border-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.todoist-task .task-checkbox.prio-p4 { border-color: var(--text-dim); }
+.todoist-task .task-content { flex: 1; font-size: 13px; min-width: 0; }
+.todoist-task .task-title {
+  color: var(--text);
+  font-weight: 500;
+  word-wrap: break-word;
+}
+.todoist-task .task-content .task-meta {
+  font-size: 11px; color: var(--text-muted); margin-top: 3px;
+}
+.todoist-task .task-project {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 2px;
+}
+.todoist-task.current {
+  background: var(--accent-dim);
+  border-radius: 6px;
+}
+.todoist-task .task-actions { display: flex; gap: 6px; }
+.todoist-task .task-actions button {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 28px; height: 28px; padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+.todoist-task .task-actions button:hover { background: var(--border); }
+.todoist-task .task-actions button.complete:hover { background: var(--accent); border-color: var(--accent); color: white; }
+.todoist-task .task-actions button.start:hover { background: var(--info); border-color: var(--info); color: white; }
+
+/* CURRENT TASK BADGE near timer */
+.current-task-badge {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* TODOIST REPORTS TABLE */
+.todoist-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 13px;
+}
+.todoist-report-table th, .todoist-report-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.todoist-report-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.todoist-report-table td:not(:first-child),
+.todoist-report-table th:not(:first-child) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.todoist-report-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.prio-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.prio-pill.p1 { background: rgba(239,68,68,0.18); color: #fca5a5; }
+.prio-pill.p2 { background: rgba(245,158,11,0.18); color: #fcd34d; }
+.prio-pill.p3 { background: rgba(59,130,246,0.18); color: #93c5fd; }
+.prio-pill.p4 { background: var(--surface-2); color: var(--text-muted); }
+body.light .prio-pill.p1 { color: #b91c1c; }
+body.light .prio-pill.p2 { color: #b45309; }
+body.light .prio-pill.p3 { color: #1d4ed8; }
+body.light .prio-pill.p4 { color: var(--text-muted); }
+
+/* TIMER */
+.timer-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 16px 20px;
+}
+.timer-left { flex: 1; }
+.time-display {
+  font-size: 42px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+  margin-bottom: 6px;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.status-pill .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+.status-pill.running .dot { background: var(--accent); animation: pulse 1.5s infinite; }
+.status-pill.running { color: var(--accent); border-color: var(--accent); }
+.status-pill.paused .dot { background: var(--warning); }
+.status-pill.paused { color: var(--warning); border-color: var(--warning); }
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+.controls { display: flex; gap: 12px; }
+.btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: transform .15s ease;
+}
+.btn:hover:not(:disabled) { transform: translateY(-2px); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-icon {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  color: white;
+}
+.btn-start .btn-icon { background: var(--accent); }
+.btn-pause .btn-icon { background: var(--warning); }
+.btn-stop .btn-icon { background: var(--danger); }
+.btn-label { font-weight: 600; }
+.btn-sub { color: var(--text-muted); font-size: 11px; }
+
+/* SESSION INFO */
+.session-info { display: flex; flex-direction: column; gap: 8px; }
+.session-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.session-row:last-child { border-bottom: none; }
+.session-row .label { color: var(--text-muted); font-size: 13px; }
+.session-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.session-row .value.highlight { color: var(--accent); }
+
+/* KPI */
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kpi-header {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.kpi-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-trend {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.kpi-trend.up { color: var(--accent); }
+.kpi-trend.down { color: var(--danger); }
+.kpi-trend.neutral { color: var(--text-muted); }
+
+/* PROGRESS BAR */
+.progress {
+  width: 100%;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+
+/* CHART */
+.chart-wrap { position: relative; height: 240px; }
+.chart-wrap.tall { height: 280px; }
+
+/* RECENT SESSIONS */
+.session-list {
+  display: flex; flex-direction: column;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.session-item:last-child { border-bottom: none; }
+.session-item .si-left { display: flex; flex-direction: column; gap: 2px; }
+.session-item .si-date { font-weight: 600; font-size: 13px; }
+.session-item .si-time { color: var(--text-muted); font-size: 12px; }
+.session-item .si-duration { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.session-item .si-delete {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  font-size: 14px;
+}
+.session-item .si-delete:hover { background: var(--surface-2); color: var(--danger); }
+.empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 32px 16px;
+  font-size: 13px;
+}
+
+/* SETTINGS */
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0;
+}
+.settings-row .label { color: var(--text-muted); font-size: 13px; }
+.input-num {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  width: 90px;
+  font-family: inherit;
+  font-size: 13px;
+}
+.btn-sm {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background .15s;
+}
+.btn-sm:hover { background: var(--border); }
+.btn-sm.danger:hover { background: var(--danger); border-color: var(--danger); color: white; }
+
+/* RESPONSIVE */
+@media (max-width: 1300px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1100px) {
+  .timer-row { grid-template-columns: 1fr; }
+  .charts-row { grid-template-columns: 1fr; }
+  .charts-row-2, .bottom-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header { flex-direction: column; gap: 12px; }
+  .date-box { text-align: left; }
+  .timer-card { flex-direction: column; gap: 16px; align-items: flex-start; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .time-display { font-size: 44px; }
+  .btn-icon { width: 52px; height: 52px; font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">⏱</div>
+      <div class="brand-name">Painel de Produtividade</div>
+    </div>
+    <div class="greeting">
+      <h1 id="greeting">Olá!</h1>
+      <p>Vamos ser produtivos hoje.</p>
+    </div>
+    <div class="date-box">
+      <button class="theme-toggle" id="themeToggle" title="Alternar tema (claro/escuro)">🌙</button>
+      <div class="date-info">
+        <div class="date" id="todayDate">—</div>
+        <div class="day" id="todayDay">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMER + SESSION -->
+  <div class="timer-row">
+    <div class="card timer-card">
+      <div class="timer-left">
+        <div class="card-title">Tempo trabalhado hoje (total)</div>
+        <div class="time-display" id="timerDisplay">00:00:00</div>
+        <div class="status-pill" id="statusPill">
+          <span class="dot"></span>
+          <span id="statusText">Parado</span>
+        </div>
+        <div class="current-task-badge" id="currentTaskBadge" style="display:none;">
+          <span>🎯</span><span id="currentTaskName"></span>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-start" id="btnStart" title="Iniciar (Espaço)">
+          <div class="btn-icon">▶</div>
+          <div class="btn-label">Iniciar</div>
+          <div class="btn-sub">Iniciar trabalho</div>
+        </button>
+        <button class="btn btn-pause" id="btnPause" title="Pausar (P)">
+          <div class="btn-icon">⏸</div>
+          <div class="btn-label">Pausar</div>
+          <div class="btn-sub">Pausar trabalho</div>
+        </button>
+        <button class="btn btn-stop" id="btnStop" title="Encerrar (Esc)">
+          <div class="btn-icon">⏹</div>
+          <div class="btn-label">Encerrar</div>
+          <div class="btn-sub">Encerrar sessão</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Sessão atual</div>
+      <div class="session-info">
+        <div class="session-row">
+          <span class="label">Início</span>
+          <span class="value" id="sessStart">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Tempo total da sessão</span>
+          <span class="value" id="sessElapsed">00:00:00</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Pausa(s)</span>
+          <span class="value" id="sessPause">00:00:00</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Tempo líquido</span>
+          <span class="value highlight" id="sessNet">00:00:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="card kpi">
+      <div class="kpi-header">
+        <div class="kpi-icon">🕐</div>
+        <span>Hoje</span>
+      </div>
+      <div class="kpi-value" id="kpiToday">0h 0m</div>
+      <div class="kpi-trend" id="trendToday">— vs ontem</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-header">
+        <div class="kpi-icon">📅</div>
+        <span>Esta semana</span>
+      </div>
+      <div class="kpi-value" id="kpiWeek">0h 0m</div>
+      <div class="kpi-trend" id="trendWeek">— vs semana anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-header">
+        <div class="kpi-icon">📊</div>
+        <span>Este mês</span>
+      </div>
+      <div class="kpi-value" id="kpiMonth">0h 0m</div>
+      <div class="kpi-trend" id="trendMonth">— vs mês anterior</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-header">
+        <div class="kpi-icon">📈</div>
+        <span>Média diária</span>
+      </div>
+      <div class="kpi-value" id="kpiAvg">0h 0m</div>
+      <div class="kpi-trend neutral" id="avgSub">por dia trabalhado (mês)</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-header">
+        <div class="kpi-icon">🎯</div>
+        <span>Meta diária</span>
+      </div>
+      <div class="kpi-value" id="kpiGoal">0%</div>
+      <div class="progress"><div class="progress-fill" id="goalFill" style="width:0%"></div></div>
+      <div class="kpi-trend neutral" id="goalRemaining">Faltam 8h 00m</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-header">
+        <div class="kpi-icon">🔥</div>
+        <span>Sequência</span>
+      </div>
+      <div class="kpi-value" id="kpiStreak">0 dias</div>
+      <div class="kpi-trend neutral" id="streakSub">Comece hoje!</div>
+    </div>
+  </div>
+
+  <!-- DAY DETAIL -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+      <div class="card-title" style="margin-bottom:0; font-size:15px;">📋 Resumo do dia</div>
+      <div class="day-nav">
+        <button class="btn-sm" id="dayPrev" title="Dia anterior">◀</button>
+        <input type="date" id="dayPicker">
+        <button class="btn-sm" id="dayNext" title="Próximo dia">▶</button>
+        <button class="btn-sm" id="dayToday">Hoje</button>
+      </div>
+    </div>
+
+    <!-- Todoist Tarefas -->
+    <div class="day-section" id="todoistSection" style="display:none;">
+      <div class="day-section-title">📋 Tarefas (Todoist)</div>
+      <div class="day-list" id="todoistList"></div>
+    </div>
+
+    <!-- Trabalho -->
+    <div class="day-section">
+      <div class="day-section-title">📅 Trabalho</div>
+      <div class="day-list" id="dayWork"></div>
+      <div class="day-total" id="dayWorkTotal">👉 Total trabalhado: 0h 00m</div>
+    </div>
+
+    <!-- Pausas -->
+    <div class="day-section">
+      <div class="day-section-title">⏸ Pausas</div>
+      <div class="day-list" id="dayPauses"></div>
+      <div class="day-total" id="dayPausesTotal">⏸ Total de pausas: 0h 00m</div>
+    </div>
+
+    <!-- Sono -->
+    <div class="day-section">
+      <div class="day-section-title">🌙 Sono</div>
+      <div class="day-list" id="daySleep"></div>
+
+      <div class="sleep-form">
+        <div class="field">
+          <span class="field-label">Dormiu (data e hora)</span>
+          <input type="datetime-local" id="sleepStartInput">
+        </div>
+        <div class="field">
+          <span class="field-label">Acordou (data e hora)</span>
+          <input type="datetime-local" id="sleepEndInput">
+        </div>
+        <button class="btn-sm" id="sleepAddBtn" style="height:38px;">+ Adicionar registro</button>
+      </div>
+    </div>
+
+    <!-- Academia -->
+    <div class="day-section">
+      <div class="day-section-title">💪 Academia</div>
+
+      <div class="gym-toggles">
+        <button class="gym-toggle" id="gymToggleMusc" data-type="musculacao">
+          <span class="gym-icon">💪</span>
+          <span class="gym-name">Musculação</span>
+          <span class="gym-status" id="gymStatusMusc">não feito</span>
+        </button>
+        <button class="gym-toggle" id="gymToggleCardio" data-type="cardio">
+          <span class="gym-icon">🏃</span>
+          <span class="gym-name">Cardio</span>
+          <span class="gym-status" id="gymStatusCardio">não feito</span>
+        </button>
+      </div>
+
+      <div class="day-list" id="dayGym"></div>
+
+      <div class="gym-form">
+        <div class="field">
+          <span class="field-label">Tipo</span>
+          <select id="gymTypeInput">
+            <option value="musculacao">💪 Musculação</option>
+            <option value="cardio">🏃 Cardio</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">Duração (min)</span>
+          <input type="number" id="gymDurationInput" min="0" max="600" placeholder="ex: 60">
+        </div>
+        <div class="field field-notes">
+          <span class="field-label">Observações</span>
+          <input type="text" id="gymNotesInput" placeholder="ex: Peito + tríceps · 30min esteira">
+        </div>
+        <button class="btn-sm" id="gymAddBtn" style="height:38px;">+ Adicionar treino</button>
+      </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="day-summary">
+      <div class="day-section-title">📊 Resumo do dia</div>
+      <div class="settings-row">
+        <span class="label">Trabalho líquido</span>
+        <span class="value" id="dayResumoWork">0h 0m</span>
+      </div>
+      <div class="settings-row">
+        <span class="label">Pausas totais</span>
+        <span class="value" id="dayResumoPauses">0h 0m</span>
+      </div>
+      <div class="settings-row">
+        <span class="label">Sono</span>
+        <span class="value" id="dayResumoSleep">0h 0m</span>
+      </div>
+      <div class="settings-row">
+        <span class="label">Musculação</span>
+        <span class="value" id="dayResumoMusc">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="label">Cardio</span>
+        <span class="value" id="dayResumoCardio">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Tempo por dia (últimos 30 dias)</div>
+      <div class="chart-wrap tall"><canvas id="chartMonth"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dias da semana mais produtivos</div>
+      <div class="chart-wrap tall"><canvas id="chartWeekdays"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="charts-row-2">
+    <div class="card">
+      <div class="card-title">Tempo por dia (últimos 7 dias)</div>
+      <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Horário mais produtivo (média de min/h num dia típico)</div>
+      <div class="chart-wrap"><canvas id="chartHours"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 3: Distribuição de sessões -->
+  <div class="charts-row-2">
+    <div class="card">
+      <div class="card-title">Distribuição da duração das sessões</div>
+      <div class="chart-wrap"><canvas id="chartDistribution"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Comparativo: esta semana vs anterior</div>
+      <div class="chart-wrap"><canvas id="chartCompare"></canvas></div>
+    </div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div class="card-title">Atividade no último ano (heatmap)</div>
+    <div class="heatmap-wrap">
+      <div class="heatmap-months" id="heatmapMonths"></div>
+      <div class="heatmap" id="heatmap"></div>
+      <div class="heatmap-legend">
+        <span>Menos</span>
+        <span class="cell"></span>
+        <span class="cell l1"></span>
+        <span class="cell l2"></span>
+        <span class="cell l3"></span>
+        <span class="cell l4"></span>
+        <span>Mais</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Resumo + Recent sessions -->
+  <div class="bottom-row">
+    <div class="card">
+      <div class="card-title">Resumo geral</div>
+      <div class="session-info">
+        <div class="session-row">
+          <span class="label">Média diária (últimos 7 dias)</span>
+          <span class="value" id="statAvgDay">0h 0m</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Sessões esta semana</span>
+          <span class="value" id="statSessWeek">0</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Sessão mais longa do mês</span>
+          <span class="value" id="statLongest">0h 0m</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Dia mais produtivo (mês)</span>
+          <span class="value" id="statBestDay">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Dia menos produtivo (mês)</span>
+          <span class="value" id="statWorstDay">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Projeção do mês (ritmo atual)</span>
+          <span class="value" id="statProjection">0h 0m</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Eficiência hoje (líquido / bruto)</span>
+          <span class="value" id="statEfficiency">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Pausa média por sessão</span>
+          <span class="value" id="statAvgPause">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Primeira atividade hoje</span>
+          <span class="value" id="statFirst">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Última atividade hoje</span>
+          <span class="value" id="statLast">—</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Total acumulado</span>
+          <span class="value" id="statTotal">0h 0m</span>
+        </div>
+        <div class="session-row">
+          <span class="label">Dias trabalhados no mês</span>
+          <span class="value" id="statDaysMonth">0</span>
+        </div>
+        <div class="session-row" style="border-top:1px solid var(--border); margin-top:6px; padding-top:12px;">
+          <span class="label">💪 Musculação esta semana</span>
+          <span class="value" id="statGymMusc">0/7</span>
+        </div>
+        <div class="session-row">
+          <span class="label">🏃 Cardio esta semana</span>
+          <span class="value" id="statGymCardio">0/7</span>
+        </div>
+        <div class="session-row">
+          <span class="label">🔥 Sequência de treinos</span>
+          <span class="value" id="statGymStreak">0 dias</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sessões recentes</div>
+      <div class="session-list" id="sessionList">
+        <div class="empty">Nenhuma sessão ainda. Clique em <strong>Iniciar</strong> pra começar!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TODOIST REPORTS -->
+  <div class="card" id="todoistReportCard" style="margin-bottom: 16px; display:none;">
+    <div class="card-title">📊 Relatórios Todoist</div>
+    <table class="todoist-report-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Hoje</th>
+          <th>Semana</th>
+          <th>Mês</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Concluídas</strong></td>
+          <td id="rptTodayTotal">—</td>
+          <td id="rptWeekTotal">—</td>
+          <td id="rptMonthTotal">—</td>
+        </tr>
+        <tr><td><span class="prio-pill p1">P1</span> Urgente</td>
+          <td id="rptTodayP1">—</td><td id="rptWeekP1">—</td><td id="rptMonthP1">—</td></tr>
+        <tr><td><span class="prio-pill p2">P2</span> Alta</td>
+          <td id="rptTodayP2">—</td><td id="rptWeekP2">—</td><td id="rptMonthP2">—</td></tr>
+        <tr><td><span class="prio-pill p3">P3</span> Média</td>
+          <td id="rptTodayP3">—</td><td id="rptWeekP3">—</td><td id="rptMonthP3">—</td></tr>
+        <tr><td><span class="prio-pill p4">P4</span> Normal</td>
+          <td id="rptTodayP4">—</td><td id="rptWeekP4">—</td><td id="rptMonthP4">—</td></tr>
+        <tr><td>🔁 Recorrentes</td>
+          <td id="rptTodayRec">—</td><td id="rptWeekRec">—</td><td id="rptMonthRec">—</td></tr>
+        <tr><td>⏭ Adiadas</td>
+          <td id="rptTodayPos">—</td><td id="rptWeekPos">—</td><td id="rptMonthPos">—</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px; color: var(--text-dim); margin-top: 10px;">
+      ⓘ Adiamentos detectados via histórico de atividade do Todoist (últimas ~100 modificações de tarefa).
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div class="card-title">Configurações & Backup</div>
+    <div class="settings-row">
+      <span class="label">Meta diária (horas)</span>
+      <input type="number" class="input-num" id="goalInput" min="1" max="24" step="0.5" value="8">
+    </div>
+    <div class="settings-row">
+      <span class="label">Backup dos dados</span>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-sm" id="exportBtn">⬇ Exportar JSON</button>
+        <button class="btn-sm" id="importBtn">⬆ Importar JSON</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+        <button class="btn-sm danger" id="resetBtn">🗑 Apagar tudo</button>
+      </div>
+    </div>
+    <div class="settings-row" style="border-top:1px solid var(--border); padding-top:12px; margin-top:8px;">
+      <span class="label" style="font-size:11px; color: var(--text-dim);">
+        💡 Atalhos: <kbd>Espaço</kbd> iniciar/pausar · <kbd>Esc</kbd> encerrar · Dados salvos no seu navegador.
+      </span>
+    </div>
+
+    <div style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
+      <div class="card-title" style="margin-bottom:10px;">📋 Integração Todoist</div>
+
+      <div class="settings-row">
+        <span class="label">Status</span>
+        <span class="value" id="todoistStatus">⚪ Desconectado</span>
+      </div>
+      <div class="settings-row">
+        <span class="label">Token API</span>
+        <input type="password" class="input-num" id="todoistTokenInput" style="width: 260px;" placeholder="seu token Todoist">
+      </div>
+      <div class="settings-row">
+        <span class="label">Filtro <span style="color:var(--text-dim); font-size:11px;">(sintaxe Todoist)</span></span>
+        <input type="text" class="input-num" id="todoistFilterInput" style="width: 260px;" placeholder="today | overdue (recomendado)">
+      </div>
+      <div class="settings-row">
+        <span class="label">Ações</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-sm" id="todoistConnect">🔗 Conectar</button>
+          <button class="btn-sm" id="todoistRefresh">🔄 Atualizar</button>
+          <button class="btn-sm danger" id="todoistDisconnect">❌ Desconectar</button>
+        </div>
+      </div>
+      <div class="settings-row" style="border-top:none; padding-top:6px;">
+        <span class="label" style="font-size:11px; color: var(--text-dim); line-height:1.6;">
+          💡 <strong>Como pegar o token:</strong>
+          <a href="https://app.todoist.com/app/settings/integrations/developer" target="_blank" style="color:var(--accent);">app.todoist.com → Settings → Integrations → Developer</a>
+          → copia o API token. Filtros: <code>today</code>, <code>overdue</code>, <code>today | overdue</code>, <code>p1</code>, etc.
+        </span>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
+      <div class="card-title" style="margin-bottom:10px;">☁️ Sync entre dispositivos (GitHub Gist)</div>
+
+      <div class="settings-row">
+        <span class="label">Status</span>
+        <span class="value" id="syncStatus">⚪ Desconectado</span>
+      </div>
+      <div class="settings-row">
+        <span class="label">Token (PAT)</span>
+        <input type="password" class="input-num" id="ghTokenInput" style="width: 260px;" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+      <div class="settings-row">
+        <span class="label">Gist ID <span style="color:var(--text-dim); font-size:11px;">(deixe vazio pra criar novo)</span></span>
+        <input type="text" class="input-num" id="ghGistInput" style="width: 260px;" placeholder="ex.: 4d8f...">
+      </div>
+      <div class="settings-row">
+        <span class="label">Ações</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-sm" id="ghConnect">🔗 Conectar</button>
+          <button class="btn-sm" id="ghSyncNow">🔄 Sincronizar agora</button>
+          <button class="btn-sm danger" id="ghDisconnect">❌ Desconectar</button>
+        </div>
+      </div>
+      <div class="settings-row" style="border-top:none; padding-top:6px;">
+        <span class="label" style="font-size:11px; color: var(--text-dim); line-height:1.6;">
+          💡 <strong>Como pegar o token:</strong>
+          <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent);">github.com/settings/tokens</a>
+          → <em>Generate new token (classic)</em> → marca apenas <strong>gist</strong> → <em>No expiration</em> → cria e copia.
+          Se não tiver Gist ID, deixa vazio e clica Conectar — eu crio um pra você.
+          Em outro dispositivo, cola o mesmo Gist ID pra puxar os dados.
+        </span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// PAINEL DE PRODUTIVIDADE - Personal productivity timer
+// ============================================================
+
+const STORAGE_KEY = 'painel-produtividade.v1';
+const state = {
+  sessions: [],            // [{ id, start, end, durationSec, pauseSec }]
+  current: null,           // { start, pausedAt|null, totalPauseMs, status: 'running'|'paused' }
+  settings: { dailyGoalH: 8 },
+  sleeps: [],              // [{ id, start, end, durationSec }]
+  workouts: []             // [{ id, dayKey 'YYYY-MM-DD', type 'musculacao'|'cardio', durationMin, notes, createdAt }]
+};
+
+// ---------- PERSISTENCE ----------
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      Object.assign(state, parsed);
+    }
+  } catch(e) { console.warn('Falha ao carregar dados', e); }
+  // Garante que sleeps/workouts existem (compat com dados antigos)
+  if (!Array.isArray(state.sleeps)) state.sleeps = [];
+  if (!Array.isArray(state.workouts)) state.workouts = [];
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e) { console.warn('Falha ao salvar', e); }
+  schedulePush(); // sync to gist (debounced)
+}
+
+// ---------- TODOIST INTEGRATION ----------
+const TODOIST_KEY = 'painel-todoist.v1';
+const todoist = {
+  token: null,
+  filter: 'today | overdue',
+  tasks: [],          // tasks ativas que casam com o filtro
+  projects: [],       // [{id, name, color}]
+  projectMap: {},     // { id: { name, color } }
+  completedMonth: [], // todas as completed do último mês (filtramos depois por dia/semana)
+  activityMonth: [],  // eventos de "atrasou tarefa" do último mês
+  status: 'idle',
+  lastFetch: null
+};
+
+function loadTodoistConfig() {
+  try {
+    const raw = localStorage.getItem(TODOIST_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      todoist.token = parsed.token || null;
+      todoist.filter = parsed.filter || 'today';
+      todoist.lastFetch = parsed.lastFetch || null;
+    }
+  } catch(e) {}
+}
+function saveTodoistConfig() {
+  try {
+    localStorage.setItem(TODOIST_KEY, JSON.stringify({
+      token: todoist.token, filter: todoist.filter, lastFetch: todoist.lastFetch
+    }));
+  } catch(e) {}
+}
+function setTodoistStatus(s, detail) {
+  todoist.status = s;
+  const el = document.getElementById('todoistStatus');
+  if (!el) return;
+  const t = todoist.lastFetch ? new Date(todoist.lastFetch).toLocaleTimeString('pt-BR') : '';
+  const map = {
+    'idle':       '⚪ Desconectado',
+    'fetching':   '🟡 Buscando tarefas...',
+    'ok':         `🟢 Conectado · ${t}`,
+    'error':      '🔴 Erro' + (detail ? ': ' + detail : ''),
+    'connected':  '🟢 Conectado'
+  };
+  el.textContent = map[s] || s;
+}
+
+async function todoistRequest(url, options = {}) {
+  if (!todoist.token) throw new Error('sem token');
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${todoist.token}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    let msg = `HTTP ${res.status}`;
+    if (res.status === 401 || res.status === 403) msg = 'Token inválido';
+    if (text && msg.startsWith('HTTP')) msg += ' — ' + text.slice(0,80);
+    throw new Error(msg);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+async function fetchTodoistTasks() {
+  if (!todoist.token) return;
+  setTodoistStatus('fetching');
+  try {
+    const filter = todoist.filter || 'today | overdue';
+    const url = `https://api.todoist.com/rest/v2/tasks?filter=${encodeURIComponent(filter)}`;
+    const tasks = await todoistRequest(url);
+    todoist.tasks = Array.isArray(tasks) ? tasks : [];
+
+    // Fetch projects (cache mapeamento id → name/color)
+    try {
+      const projects = await todoistRequest('https://api.todoist.com/rest/v2/projects');
+      todoist.projects = Array.isArray(projects) ? projects : [];
+      todoist.projectMap = {};
+      for (const p of todoist.projects) {
+        todoist.projectMap[p.id] = { name: p.name, color: p.color };
+      }
+    } catch (e) { /* ignora se falhar */ }
+
+    // Completed do último mês (pra reports)
+    const since = new Date(); since.setDate(since.getDate() - 31); since.setHours(0,0,0,0);
+    const sinceStr = since.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    try {
+      const comp = await todoistRequest(
+        `https://api.todoist.com/sync/v9/completed/get_all?since=${encodeURIComponent(sinceStr)}&limit=200&annotate_items=true`
+      );
+      todoist.completedMonth = (comp && comp.items) ? comp.items : [];
+    } catch (e) { todoist.completedMonth = []; }
+
+    // Activity log para detectar adiamentos (best-effort)
+    try {
+      const act = await todoistRequest(
+        `https://api.todoist.com/sync/v9/activity/get?event_type=updated&object_type=item&limit=100`
+      );
+      todoist.activityMonth = (act && act.events) ? act.events : [];
+    } catch (e) { todoist.activityMonth = []; }
+
+    todoist.lastFetch = Date.now();
+    saveTodoistConfig();
+    setTodoistStatus('ok');
+    render();
+  } catch (e) {
+    setTodoistStatus('error', e.message);
+  }
+}
+
+async function completeTodoistTask(id) {
+  try {
+    await todoistRequest(`https://api.todoist.com/rest/v2/tasks/${id}/close`, { method: 'POST' });
+    todoist.tasks = todoist.tasks.filter(t => String(t.id) !== String(id));
+    render();
+    // Refresh em segundo plano pra atualizar relatórios
+    setTimeout(() => fetchTodoistTasks(), 1000);
+  } catch (e) {
+    alert('Erro ao concluir tarefa: ' + e.message);
+  }
+}
+
+async function connectTodoist() {
+  const tokenEl = document.getElementById('todoistTokenInput');
+  const filterEl = document.getElementById('todoistFilterInput');
+  const token = tokenEl.value.trim();
+  const filter = (filterEl.value || 'today').trim();
+  if (!token) { alert('Cole o seu token do Todoist primeiro.'); return; }
+
+  todoist.token = token;
+  todoist.filter = filter;
+  saveTodoistConfig();
+  await fetchTodoistTasks();
+  if (todoist.status === 'ok') alert('✅ Conectado ao Todoist!');
+}
+
+function disconnectTodoist() {
+  if (!confirm('Desconectar do Todoist?')) return;
+  todoist.token = null;
+  todoist.tasks = [];
+  todoist.completedMonth = [];
+  todoist.activityMonth = [];
+  todoist.lastFetch = null;
+  saveTodoistConfig();
+  document.getElementById('todoistTokenInput').value = '';
+  document.getElementById('todoistFilterInput').value = todoist.filter;
+  setTodoistStatus('idle');
+  render();
+}
+
+// ---------- TODOIST REPORTS HELPERS ----------
+// Priority no Todoist: 4=urgente(P1), 3=alta(P2), 2=média(P3), 1=normal(P4)
+const PRIORITY_NAMES = { 4: 'P1', 3: 'P2', 2: 'P3', 1: 'P4' };
+
+function todoistCompletedInRange(fromMs, toMs) {
+  return todoist.completedMonth.filter(c => {
+    const t = new Date(c.completed_at).getTime();
+    return t >= fromMs && t < toMs;
+  });
+}
+function priorityOfCompleted(item) {
+  // o completed_get_all com annotate_items=true inclui item_object com priority
+  if (item.item_object && item.item_object.priority) return item.item_object.priority;
+  if (item.meta_data && item.meta_data.note_added && item.meta_data.note_added.priority) return item.meta_data.note_added.priority;
+  return 1; // default P4
+}
+function isRecurringCompleted(item) {
+  // Heurística: se item_object tem due.is_recurring, ou se aparece +1 vez no mês com mesmo task_id
+  if (item.item_object && item.item_object.due && item.item_object.due.is_recurring) return true;
+  return false;
+}
+function buildTodoistReport(fromMs, toMs) {
+  const items = todoistCompletedInRange(fromMs, toMs);
+  const counts = { total: items.length, p1:0, p2:0, p3:0, p4:0, recurring: 0 };
+  // task_ids únicos no período pra detectar recorrência por aparição múltipla
+  const idCount = {};
+  for (const it of items) {
+    const tid = it.task_id || it.id;
+    idCount[tid] = (idCount[tid] || 0) + 1;
+    const p = priorityOfCompleted(it);
+    if (p === 4) counts.p1++;
+    else if (p === 3) counts.p2++;
+    else if (p === 2) counts.p3++;
+    else counts.p4++;
+    if (isRecurringCompleted(it)) counts.recurring++;
+  }
+  // Adiciona task_ids que apareceram mais de 1x (sinal de recorrência)
+  for (const [tid, n] of Object.entries(idCount)) {
+    if (n > 1) {
+      // já contamos cada conclusão; agora adicionamos pelo menos uma vez como recurring caso não tenha sido
+    }
+  }
+  // Adiamentos: eventos do activity log com extra_data.due_date_change ou similar
+  let postponed = 0;
+  for (const ev of todoist.activityMonth) {
+    const t = new Date(ev.event_date).getTime();
+    if (t < fromMs || t >= toMs) continue;
+    const ed = ev.extra_data || {};
+    if (ed.due_date && ed.last_due_date) {
+      // se a nova due_date é depois da anterior → adiou
+      const oldD = new Date(ed.last_due_date).getTime();
+      const newD = new Date(ed.due_date).getTime();
+      if (newD > oldD) postponed++;
+    }
+  }
+  counts.postponed = postponed;
+  return counts;
+}
+function todayTodoistReport() {
+  const start = startOfDay(new Date()).getTime();
+  return buildTodoistReport(start, start + 86400000);
+}
+function weekTodoistReport() {
+  const start = startOfWeek(new Date()).getTime();
+  return buildTodoistReport(start, start + 7*86400000);
+}
+function monthTodoistReport() {
+  const start = startOfMonth(new Date()).getTime();
+  const end = new Date(start); end.setMonth(new Date(start).getMonth()+1);
+  return buildTodoistReport(start, end.getTime());
+}
+
+// ---------- THEME ----------
+const THEME_KEY = 'painel-theme.v1';
+function applyTheme(theme) {
+  if (theme === 'light') document.body.classList.add('light');
+  else document.body.classList.remove('light');
+  try { localStorage.setItem(THEME_KEY, theme); } catch(e) {}
+  const btn = document.getElementById('themeToggle');
+  if (btn) {
+    btn.textContent = theme === 'light' ? '🌙' : '☀️';
+    btn.title = theme === 'light' ? 'Mudar para tema escuro' : 'Mudar para tema claro';
+  }
+  // Re-render charts pra adaptar cores ao novo tema
+  if (typeof renderCharts === 'function' && typeof charts !== 'undefined' && Object.keys(charts).length > 0) {
+    renderCharts();
+  }
+}
+function loadTheme() {
+  let t = 'dark';
+  try { t = localStorage.getItem(THEME_KEY) || 'dark'; } catch(e) {}
+  applyTheme(t);
+}
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
+// ---------- SYNC (GitHub Gist) ----------
+const SYNC_KEY = 'painel-sync.v1';
+const sync = {
+  token: null,
+  gistId: null,
+  lastSync: null,
+  status: 'idle',
+  pulling: false
+};
+let pushTimer = null;
+
+function loadSyncConfig() {
+  try {
+    const raw = localStorage.getItem(SYNC_KEY);
+    if (raw) Object.assign(sync, JSON.parse(raw));
+  } catch(e) {}
+}
+function saveSyncConfig() {
+  try {
+    localStorage.setItem(SYNC_KEY, JSON.stringify({
+      token: sync.token, gistId: sync.gistId, lastSync: sync.lastSync
+    }));
+  } catch(e) {}
+}
+function setSyncStatus(s, detail) {
+  sync.status = s;
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const t = sync.lastSync ? new Date(sync.lastSync).toLocaleTimeString('pt-BR') : '';
+  const map = {
+    'idle':         '⚪ Desconectado',
+    'connected':    `🟢 Conectado${t ? ' · último sync ' + t : ''}`,
+    'syncing':      '🟡 Sincronizando...',
+    'ok':           `🟢 Sincronizado · ${t}`,
+    'error':        '🔴 Erro' + (detail ? ': ' + detail : ''),
+    'disconnected': '⚪ Desconectado'
+  };
+  el.textContent = map[s] || s;
+}
+
+async function ghRequest(url, options = {}) {
+  if (!sync.token) throw new Error('sem token');
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${sync.token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(()=> '');
+    let msg = `HTTP ${res.status}`;
+    if (res.status === 401) msg = 'Token inválido ou expirado';
+    else if (res.status === 404) msg = 'Gist não encontrado';
+    else if (res.status === 403) msg = 'Sem permissão (token precisa do escopo gist)';
+    if (text && msg.startsWith('HTTP')) msg += ' — ' + text.slice(0,80);
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+function buildPayload() {
+  return JSON.stringify({
+    sessions: state.sessions,
+    settings: state.settings,
+    sleeps: state.sleeps,
+    workouts: state.workouts,
+    lastModified: Date.now()
+  }, null, 2);
+}
+
+async function createGist() {
+  const result = await ghRequest('https://api.github.com/gists', {
+    method: 'POST',
+    body: JSON.stringify({
+      description: 'Painel de Produtividade — backup automático',
+      public: false,
+      files: { 'painel-data.json': { content: buildPayload() } }
+    })
+  });
+  return result.id;
+}
+
+async function pushToGist() {
+  if (!sync.token || !sync.gistId) return;
+  setSyncStatus('syncing');
+  try {
+    await ghRequest(`https://api.github.com/gists/${sync.gistId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        files: { 'painel-data.json': { content: buildPayload() } }
+      })
+    });
+    sync.lastSync = Date.now();
+    saveSyncConfig();
+    setSyncStatus('ok');
+  } catch (e) {
+    setSyncStatus('error', e.message);
+  }
+}
+
+async function pullFromGist({ silent = false } = {}) {
+  if (!sync.token || !sync.gistId || sync.pulling) return;
+  sync.pulling = true;
+  if (!silent) setSyncStatus('syncing');
+  try {
+    const data = await ghRequest(`https://api.github.com/gists/${sync.gistId}`);
+    const file = data.files && data.files['painel-data.json'];
+    if (!file) {
+      // gist sem arquivo de dados → publica o local
+      sync.pulling = false;
+      await pushToGist();
+      return;
+    }
+    let content = file.content;
+    if (file.truncated && file.raw_url) {
+      const r = await fetch(file.raw_url);
+      content = await r.text();
+    }
+    const remote = JSON.parse(content);
+    if (!Array.isArray(remote.sessions)) throw new Error('formato inválido no gist');
+
+    // merge por id de sessão (idempotente)
+    const localIds = new Set(state.sessions.map(s => s.id));
+    let added = 0;
+    for (const rs of remote.sessions) {
+      if (rs && rs.id && !localIds.has(rs.id)) {
+        state.sessions.push(rs);
+        added++;
+      }
+    }
+    // merge sleeps por id
+    if (Array.isArray(remote.sleeps)) {
+      const localSleepIds = new Set(state.sleeps.map(s => s.id));
+      for (const rs of remote.sleeps) {
+        if (rs && rs.id && !localSleepIds.has(rs.id)) {
+          state.sleeps.push(rs);
+          added++;
+        }
+      }
+    }
+    // merge workouts por id
+    if (Array.isArray(remote.workouts)) {
+      const localWorkoutIds = new Set(state.workouts.map(w => w.id));
+      for (const rw of remote.workouts) {
+        if (rw && rw.id && !localWorkoutIds.has(rw.id)) {
+          state.workouts.push(rw);
+          added++;
+        }
+      }
+    }
+    // settings do gist se houver lastModified mais recente
+    if (remote.settings && typeof remote.lastModified === 'number') {
+      state.settings = { ...state.settings, ...remote.settings };
+    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+    sync.lastSync = Date.now();
+    saveSyncConfig();
+    setSyncStatus('ok');
+    if (added > 0 || !silent) render();
+    // se a versão local tinha sessões que o remoto não tinha, dá um push de volta
+    const remoteIds = new Set(remote.sessions.map(s => s.id));
+    const localExtra = state.sessions.filter(s => !remoteIds.has(s.id));
+    if (localExtra.length > 0) schedulePush();
+  } catch (e) {
+    setSyncStatus('error', e.message);
+  } finally {
+    sync.pulling = false;
+  }
+}
+
+function schedulePush() {
+  if (!sync.token || !sync.gistId) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => pushToGist(), 2000);
+}
+
+async function connectGist() {
+  const tokenEl = document.getElementById('ghTokenInput');
+  const gistEl = document.getElementById('ghGistInput');
+  const token = tokenEl.value.trim();
+  const gistId = gistEl.value.trim();
+  if (!token) { alert('Cole o seu Personal Access Token (PAT) primeiro.'); return; }
+
+  sync.token = token;
+  setSyncStatus('syncing');
+  try {
+    if (!gistId) {
+      const newId = await createGist();
+      sync.gistId = newId;
+      gistEl.value = newId;
+      saveSyncConfig();
+      alert(`✅ Gist criado!\n\nID: ${newId}\n\nGuarde esse ID — em outro dispositivo, cole ele junto com o token pra conectar no mesmo gist.`);
+    } else {
+      sync.gistId = gistId;
+      saveSyncConfig();
+      await pullFromGist();
+    }
+    setSyncStatus('ok');
+  } catch (e) {
+    setSyncStatus('error', e.message);
+    alert('❌ Falhou: ' + e.message);
+    sync.token = null;
+    sync.gistId = null;
+    saveSyncConfig();
+  }
+}
+
+function disconnectGist() {
+  if (!confirm('Desconectar do GitHub Gist? Os dados continuam salvos localmente, mas não vão mais sincronizar.')) return;
+  sync.token = null;
+  sync.gistId = null;
+  sync.lastSync = null;
+  saveSyncConfig();
+  document.getElementById('ghTokenInput').value = '';
+  document.getElementById('ghGistInput').value = '';
+  setSyncStatus('disconnected');
+}
+
+// ---------- TIME HELPERS ----------
+const pad = n => String(n).padStart(2, '0');
+function fmtHMS(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+function fmtHM(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+  return `${h}h ${pad(m)}m`;
+}
+function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function startOfWeek(d) { // monday
+  const x = startOfDay(d);
+  const dow = (x.getDay() + 6) % 7; // 0=mon..6=sun
+  x.setDate(x.getDate() - dow);
+  return x;
+}
+function startOfMonth(d) { const x = new Date(d); x.setDate(1); x.setHours(0,0,0,0); return x; }
+function sameDay(a,b){return startOfDay(a).getTime()===startOfDay(b).getTime();}
+
+// ---------- TIMER LOGIC ----------
+function startTimer(task) {
+  if (state.current && state.current.status === 'paused') {
+    // resume
+    const pausedFor = Date.now() - state.current.pausedAt;
+    state.current.totalPauseMs += pausedFor;
+    state.current.pausedAt = null;
+    state.current.status = 'running';
+  } else if (!state.current) {
+    state.current = {
+      start: Date.now(),
+      pausedAt: null,
+      totalPauseMs: 0,
+      status: 'running',
+      task: task || null
+    };
+  }
+  save(); render();
+}
+function startTimerForTask(task) {
+  if (state.current) {
+    if (!confirm('Já tem uma sessão em andamento. Encerrar e começar uma nova vinculada a esta tarefa?')) return;
+    stopTimer();
+  }
+  startTimer(task);
+}
+function pauseTimer() {
+  if (!state.current || state.current.status !== 'running') return;
+  state.current.pausedAt = Date.now();
+  state.current.status = 'paused';
+  save(); render();
+}
+function stopTimer() {
+  if (!state.current) return;
+  // close current session
+  const now = Date.now();
+  let pauseMs = state.current.totalPauseMs;
+  if (state.current.status === 'paused' && state.current.pausedAt) {
+    pauseMs += (now - state.current.pausedAt);
+  }
+  const totalMs = now - state.current.start;
+  const netSec = Math.max(0, Math.floor((totalMs - pauseMs)/1000));
+  if (netSec >= 5) { // ignore tiny sessions <5s
+    const sessionRecord = {
+      id: 'sess_' + now,
+      start: state.current.start,
+      end: now,
+      durationSec: netSec,
+      pauseSec: Math.floor(pauseMs/1000)
+    };
+    if (state.current.task) sessionRecord.task = state.current.task;
+    state.sessions.push(sessionRecord);
+  }
+  state.current = null;
+  save(); render();
+}
+
+// ---------- SESSION DERIVATIONS ----------
+function currentElapsedMs() {
+  if (!state.current) return 0;
+  const now = Date.now();
+  return now - state.current.start;
+}
+function currentPauseMs() {
+  if (!state.current) return 0;
+  let p = state.current.totalPauseMs;
+  if (state.current.status === 'paused' && state.current.pausedAt) {
+    p += (Date.now() - state.current.pausedAt);
+  }
+  return p;
+}
+function currentNetSec() {
+  return Math.max(0, Math.floor((currentElapsedMs() - currentPauseMs())/1000));
+}
+
+// ---------- AGGREGATIONS ----------
+function sumOnDate(date) {
+  let total = 0;
+  for (const s of state.sessions) {
+    if (sameDay(new Date(s.start), date)) total += s.durationSec;
+  }
+  // include current running session if same day
+  if (state.current && sameDay(new Date(state.current.start), date)) {
+    total += currentNetSec();
+  }
+  return total;
+}
+function sumBetween(from, to) { // inclusive from, exclusive to
+  let total = 0;
+  for (const s of state.sessions) {
+    if (s.start >= from.getTime() && s.start < to.getTime()) total += s.durationSec;
+  }
+  if (state.current && state.current.start >= from.getTime() && state.current.start < to.getTime()) {
+    total += currentNetSec();
+  }
+  return total;
+}
+function last30DaysData() {
+  const out = [];
+  const today = startOfDay(new Date());
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    out.push({ date: d, sec: sumOnDate(d) });
+  }
+  return out;
+}
+function last7DaysData() {
+  const out = [];
+  const today = startOfDay(new Date());
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    out.push({ date: d, sec: sumOnDate(d) });
+  }
+  return out;
+}
+function weekdayData() {
+  // average per weekday — counts ONLY days that had work logged
+  // window = last 12 weeks (84 days)
+  const buckets = [0,0,0,0,0,0,0]; // mon..sun
+  const counts = [0,0,0,0,0,0,0];
+  const today = startOfDay(new Date());
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - 84);
+  for (let i = 0; i < 84; i++) {
+    const d = new Date(cutoff); d.setDate(d.getDate() + i);
+    if (d > today) break;
+    const sec = sumOnDate(d);
+    if (sec === 0) continue; // ignora dias sem trabalho
+    const dow = (d.getDay() + 6) % 7;
+    buckets[dow] += sec;
+    counts[dow] += 1;
+  }
+  return buckets.map((b,i) => counts[i] ? b/counts[i] : 0);
+}
+function hourlyData() {
+  // Average minutes worked at each hour-of-day, per active day
+  const buckets = new Array(24).fill(0);
+  const all = [...state.sessions];
+  if (state.current) {
+    all.push({
+      start: state.current.start,
+      end: Date.now(),
+      durationSec: currentNetSec()
+    });
+  }
+  const activeDays = new Set();
+  for (const s of all) {
+    const totalSpanSec = (s.end - s.start)/1000;
+    if (totalSpanSec <= 0) continue;
+    activeDays.add(startOfDay(new Date(s.start)).getTime());
+    const ratio = s.durationSec / totalSpanSec;
+    let cursor = s.start;
+    while (cursor < s.end) {
+      const d = new Date(cursor);
+      const hourEnd = new Date(d); hourEnd.setMinutes(60,0,0);
+      const segEnd = Math.min(s.end, hourEnd.getTime());
+      const segSpanSec = (segEnd - cursor)/1000;
+      buckets[d.getHours()] += segSpanSec * ratio;
+      cursor = segEnd;
+    }
+  }
+  const n = Math.max(1, activeDays.size);
+  return buckets.map(s => (s/60)/n); // média de minutos por dia trabalhado
+}
+function streak() {
+  let count = 0;
+  let d = startOfDay(new Date());
+  // if today has work, start counting from today; else start from yesterday
+  if (sumOnDate(d) === 0) d.setDate(d.getDate() - 1);
+  while (sumOnDate(d) > 0) {
+    count++;
+    d.setDate(d.getDate() - 1);
+    if (count > 3650) break;
+  }
+  return count;
+}
+function longestSessionThisMonth() {
+  const start = startOfMonth(new Date());
+  let max = 0;
+  for (const s of state.sessions) {
+    if (s.start >= start.getTime() && s.durationSec > max) max = s.durationSec;
+  }
+  return max;
+}
+function bestWorstDayThisMonth() {
+  const start = startOfMonth(new Date()).getTime();
+  const byDay = {};
+  for (const s of state.sessions) {
+    if (s.start >= start) {
+      const day = startOfDay(new Date(s.start)).getTime();
+      byDay[day] = (byDay[day] || 0) + s.durationSec;
+    }
+  }
+  if (state.current && state.current.start >= start) {
+    const day = startOfDay(new Date(state.current.start)).getTime();
+    byDay[day] = (byDay[day] || 0) + currentNetSec();
+  }
+  let best = null, worst = null;
+  for (const [day, sec] of Object.entries(byDay)) {
+    if (sec === 0) continue;
+    if (!best || sec > best.sec) best = { day: +day, sec };
+    if (!worst || sec < worst.sec) worst = { day: +day, sec };
+  }
+  return { best, worst };
+}
+function daysWorkedThisMonth() {
+  const start = startOfMonth(new Date());
+  const set = new Set();
+  for (const s of state.sessions) {
+    if (s.start >= start.getTime()) set.add(startOfDay(new Date(s.start)).getTime());
+  }
+  if (state.current && state.current.start >= start.getTime()) {
+    set.add(startOfDay(new Date(state.current.start)).getTime());
+  }
+  return set.size;
+}
+function totalAccumulated() {
+  let total = state.sessions.reduce((a,s)=>a+s.durationSec, 0);
+  total += currentNetSec();
+  return total;
+}
+function sessionCountThisWeek() {
+  const ws = startOfWeek(new Date());
+  return state.sessions.filter(s => s.start >= ws.getTime()).length;
+}
+
+// ---------- SLEEP / DAY DETAIL ----------
+function addSleep(startMs, endMs) {
+  if (!startMs || !endMs) { alert('Preencha as duas datas/horários.'); return; }
+  if (endMs <= startMs) { alert('Hora de acordar deve ser depois da hora de dormir.'); return; }
+  const id = 'sleep_' + startMs;
+  if (state.sleeps.some(s => s.id === id)) { alert('Já existe registro com esse horário de início.'); return; }
+  state.sleeps.push({
+    id,
+    start: startMs,
+    end: endMs,
+    durationSec: Math.floor((endMs - startMs)/1000)
+  });
+  save();
+  render();
+}
+function deleteSleep(id) {
+  state.sleeps = state.sleeps.filter(s => s.id !== id);
+  save();
+  render();
+}
+function sessionsForDay(date) {
+  const start = startOfDay(date).getTime();
+  const end = start + 86400000;
+  return state.sessions
+    .filter(s => s.start >= start && s.start < end)
+    .sort((a,b) => a.start - b.start);
+}
+function pausesForDay(date) {
+  const sessions = sessionsForDay(date);
+  // adiciona sessão atual se for desse dia
+  const list = [...sessions];
+  if (state.current && sameDay(new Date(state.current.start), date)) {
+    list.push({ start: state.current.start, end: Date.now() });
+    list.sort((a,b) => a.start - b.start);
+  }
+  const pauses = [];
+  for (let i = 1; i < list.length; i++) {
+    const prevEnd = list[i-1].end;
+    const currStart = list[i].start;
+    if (currStart > prevEnd) {
+      pauses.push({
+        start: prevEnd,
+        end: currStart,
+        durationSec: Math.floor((currStart - prevEnd)/1000)
+      });
+    }
+  }
+  return pauses;
+}
+function sleepsForDay(date) {
+  // Sono é atribuído ao dia em que a pessoa ACORDOU
+  const start = startOfDay(date).getTime();
+  const end = start + 86400000;
+  return state.sleeps
+    .filter(s => s.end >= start && s.end < end)
+    .sort((a,b) => a.start - b.start);
+}
+
+// ---------- ACADEMIA / WORKOUTS ----------
+function dayKeyFor(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function workoutsForDay(date) {
+  const key = dayKeyFor(date);
+  return state.workouts
+    .filter(w => w.dayKey === key)
+    .sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+}
+function workoutsByType(date, type) {
+  return workoutsForDay(date).filter(w => w.type === type);
+}
+function addWorkout(date, type, durationMin, notes) {
+  if (!type || (type !== 'musculacao' && type !== 'cardio')) {
+    alert('Selecione o tipo (Musculação ou Cardio).'); return;
+  }
+  const dayKey = dayKeyFor(date);
+  const createdAt = Date.now();
+  const id = `wkt_${createdAt}_${Math.random().toString(36).slice(2,6)}`;
+  state.workouts.push({
+    id, dayKey, type,
+    durationMin: durationMin > 0 ? Math.floor(durationMin) : null,
+    notes: notes ? notes.trim() : '',
+    createdAt
+  });
+  save();
+  render();
+}
+function deleteWorkout(id) {
+  state.workouts = state.workouts.filter(w => w.id !== id);
+  save();
+  render();
+}
+function toggleQuickWorkout(date, type) {
+  // Se já tem qualquer registro do tipo no dia → remove o último adicionado (sem detalhes preferencialmente)
+  // Senão → adiciona registro básico
+  const existing = workoutsByType(date, type);
+  if (existing.length > 0) {
+    // Se houver registros sem detalhes, remove o mais recente sem detalhes;
+    // se todos tiverem detalhes, pergunta antes de remover
+    const blanks = existing.filter(w => !w.durationMin && !w.notes);
+    if (blanks.length > 0) {
+      const target = blanks[blanks.length - 1];
+      state.workouts = state.workouts.filter(w => w.id !== target.id);
+      save(); render();
+      return;
+    }
+    if (!confirm(`Já existe ${existing.length} registro(s) detalhado(s) de ${type === 'musculacao' ? 'Musculação' : 'Cardio'} neste dia. Quer mesmo desmarcar (vai apagar o mais recente)?`)) return;
+    const target = existing[existing.length - 1];
+    state.workouts = state.workouts.filter(w => w.id !== target.id);
+    save(); render();
+  } else {
+    addWorkout(date, type, null, '');
+  }
+}
+function workoutDoneOnDay(date, type) {
+  return workoutsByType(date, type).length > 0;
+}
+function totalWorkoutMinutes(date, type) {
+  return workoutsByType(date, type).reduce((a,w) => a + (w.durationMin || 0), 0);
+}
+function workoutsThisWeek(type) {
+  const ws = startOfWeek(new Date());
+  const today = startOfDay(new Date());
+  let days = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ws); d.setDate(d.getDate() + i);
+    if (d > today) break;
+    if (workoutDoneOnDay(d, type)) days++;
+  }
+  return days;
+}
+function workoutStreak() {
+  // dias consecutivos com pelo menos 1 treino (de qualquer tipo)
+  let count = 0;
+  let d = startOfDay(new Date());
+  if (workoutsForDay(d).length === 0) d.setDate(d.getDate() - 1);
+  while (workoutsForDay(d).length > 0) {
+    count++;
+    d.setDate(d.getDate() - 1);
+    if (count > 3650) break;
+  }
+  return count;
+}
+function deepFocusPctThisMonth() {
+  const start = startOfMonth(new Date()).getTime();
+  let total = 0, deep = 0;
+  for (const s of state.sessions) {
+    if (s.start >= start) {
+      total += s.durationSec;
+      if (s.durationSec >= 50*60) deep += s.durationSec;
+    }
+  }
+  if (state.current && state.current.start >= start) {
+    const sec = currentNetSec();
+    total += sec;
+    if (sec >= 50*60) deep += sec;
+  }
+  return total === 0 ? 0 : (deep/total)*100;
+}
+function monthProjection() {
+  // Based on average daily so far this month, project to end of month
+  const now = new Date();
+  const ms = startOfMonth(now);
+  const me = new Date(ms); me.setMonth(me.getMonth()+1);
+  const totalDays = Math.round((me - ms) / 86400000);
+  const dayOfMonth = now.getDate();
+  const sumSoFar = sumBetween(ms, me);
+  if (dayOfMonth === 0) return 0;
+  const avgPerDay = sumSoFar / dayOfMonth;
+  return avgPerDay * totalDays;
+}
+function efficiencyToday() {
+  // net hours / (net + pauses) for today's sessions
+  const today = startOfDay(new Date()).getTime();
+  let net = 0, pause = 0;
+  for (const s of state.sessions) {
+    if (s.start >= today) { net += s.durationSec; pause += (s.pauseSec || 0); }
+  }
+  if (state.current && state.current.start >= today) {
+    net += currentNetSec();
+    pause += currentPauseMs()/1000;
+  }
+  const gross = net + pause;
+  if (gross === 0) return null;
+  return (net/gross)*100;
+}
+function avgPauseAllSessions() {
+  const sessions = state.sessions.filter(s => s.pauseSec !== undefined);
+  if (sessions.length === 0) return null;
+  const totalPause = sessions.reduce((a,s)=>a+(s.pauseSec||0), 0);
+  return totalPause / sessions.length;
+}
+function firstLastToday() {
+  const today = startOfDay(new Date()).getTime();
+  const todays = state.sessions.filter(s => s.start >= today);
+  if (state.current && state.current.start >= today) {
+    todays.push({ start: state.current.start, end: Date.now() });
+  }
+  if (todays.length === 0) return { first: null, last: null };
+  todays.sort((a,b)=>a.start-b.start);
+  return { first: todays[0].start, last: todays[todays.length-1].end };
+}
+function sessionDurationDistribution() {
+  // Buckets: 0-15min, 15-30, 30-50, 50-90, 90+
+  const buckets = [0,0,0,0,0];
+  const labels = ['<15min', '15-30min', '30-50min', '50-90min', '>90min'];
+  for (const s of state.sessions) {
+    const min = s.durationSec/60;
+    if (min < 15) buckets[0]++;
+    else if (min < 30) buckets[1]++;
+    else if (min < 50) buckets[2]++;
+    else if (min < 90) buckets[3]++;
+    else buckets[4]++;
+  }
+  return { labels, data: buckets };
+}
+function lastYearDailyData() {
+  // 365 days, ending today, grouped Mon-Sun columns
+  const out = [];
+  const today = startOfDay(new Date());
+  // back up to nearest Monday 52 weeks ago
+  const startOffset = 365 + ((today.getDay() + 6) % 7); // ensures we start on a monday
+  for (let i = startOffset; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    out.push({ date: d, sec: sumOnDate(d), future: d > today });
+  }
+  return out;
+}
+
+// ---------- CHARTS ----------
+let charts = {};
+function chartColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const get = (name, fb) => cs.getPropertyValue(name).trim() || fb;
+  const accent = get('--accent', '#22c55e');
+  // Conver hex/cor a rgba para barras semitransparentes
+  return {
+    accent,
+    text: get('--text-muted', '#9ca3af'),
+    textMain: get('--text', '#e5e7eb'),
+    grid: get('--grid', 'rgba(255,255,255,0.06)'),
+    tooltipBg: get('--tooltip-bg', '#1d2029'),
+    tooltipBorder: get('--tooltip-border', '#262b36'),
+    bar: accent + 'b3', // ~70% alpha
+    barLight: accent + '66' // ~40% alpha
+  };
+}
+function commonOpts(yLabel='Horas') {
+  const c = chartColors();
+  // Use daily goal as suggested ceiling so bars scale meaningfully
+  const goalH = state.settings.dailyGoalH || 8;
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: c.tooltipBg,
+        borderColor: c.tooltipBorder,
+        borderWidth: 1,
+        titleColor: c.textMain,
+        bodyColor: c.textMain,
+        callbacks: {
+          label: (ctx) => {
+            const v = ctx.parsed.y;
+            const h = Math.floor(v);
+            const m = Math.round((v - h) * 60);
+            return `${h}h ${String(m).padStart(2,'0')}m`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: c.text, font: {size: 11} }, grid: { display: false } },
+      y: {
+        ticks: { color: c.text, font: {size: 11},
+          callback: v => v + 'h', stepSize: 1 },
+        grid: { color: c.grid },
+        beginAtZero: true,
+        suggestedMax: goalH
+      }
+    }
+  };
+}
+
+function renderCharts() {
+  const c = chartColors();
+
+  // Last 7 days
+  {
+    const d = last7DaysData();
+    const labels = d.map(x => x.date.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}));
+    const data = d.map(x => +(x.sec/3600).toFixed(2));
+    if (charts.week) charts.week.destroy();
+    charts.week = new Chart(document.getElementById('chartWeek'), {
+      type: 'bar',
+      data: { labels, datasets: [{ data, backgroundColor: c.bar, borderRadius: 6 }] },
+      options: commonOpts()
+    });
+  }
+
+  // Last 30 days
+  {
+    const d = last30DaysData();
+    const labels = d.map(x => x.date.getDate());
+    const data = d.map(x => +(x.sec/3600).toFixed(2));
+    if (charts.month) charts.month.destroy();
+    charts.month = new Chart(document.getElementById('chartMonth'), {
+      type: 'bar',
+      data: { labels, datasets: [{ data, backgroundColor: c.bar, borderRadius: 4 }] },
+      options: commonOpts()
+    });
+  }
+
+  // Weekdays
+  {
+    const d = weekdayData();
+    const labels = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    const data = d.map(s => +(s/3600).toFixed(2));
+    const max = Math.max(...data);
+    const colors = data.map(v => v === max && max > 0 ? c.accent : c.barLight);
+    if (charts.weekdays) charts.weekdays.destroy();
+    charts.weekdays = new Chart(document.getElementById('chartWeekdays'), {
+      type: 'bar',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 6 }] },
+      options: commonOpts()
+    });
+  }
+
+  // Hourly (line) — média de minutos por dia trabalhado em cada hora
+  {
+    const d = hourlyData(); // array de minutos médios por hora
+    const labels = Array.from({length:24}, (_,i) => pad(i)+'h');
+    const data = d.map(m => +m.toFixed(1));
+    if (charts.hours) charts.hours.destroy();
+    charts.hours = new Chart(document.getElementById('chartHours'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          borderColor: c.accent,
+          backgroundColor: 'rgba(34,197,94,0.15)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointHoverBackgroundColor: c.accent,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: c.tooltipBg, borderColor: c.tooltipBorder, borderWidth: 1,
+            titleColor: c.textMain, bodyColor: c.textMain,
+            callbacks: {
+              label: ctx => `~${ctx.parsed.y.toFixed(0)} min num dia típico`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: c.text, font: {size: 11} }, grid: { display: false } },
+          y: {
+            ticks: { color: c.text, font: {size: 11},
+              callback: v => v + ' min', stepSize: 10 },
+            grid: { color: c.grid },
+            beginAtZero: true,
+            suggestedMax: 60
+          }
+        }
+      }
+    });
+  }
+
+  // Distribution
+  {
+    const dist = sessionDurationDistribution();
+    if (charts.distribution) charts.distribution.destroy();
+    charts.distribution = new Chart(document.getElementById('chartDistribution'), {
+      type: 'bar',
+      data: {
+        labels: dist.labels,
+        datasets: [{ data: dist.data, backgroundColor: [
+          'rgba(239,68,68,0.7)',
+          'rgba(245,158,11,0.7)',
+          'rgba(59,130,246,0.7)',
+          'rgba(34,197,94,0.7)',
+          'rgba(168,85,247,0.7)'
+        ], borderRadius: 6 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: c.tooltipBg, borderColor: c.tooltipBorder, borderWidth: 1,
+            titleColor: c.textMain, bodyColor: c.textMain,
+            callbacks: { label: ctx => `${ctx.parsed.y} sessões` }
+          }
+        },
+        scales: {
+          x: { ticks: { color: c.text, font: {size: 11} }, grid: { display: false } },
+          y: { ticks: { color: c.text, font: {size: 11}, precision: 0 },
+               grid: { color: c.grid }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // Compare current vs previous week (by weekday)
+  {
+    const now = new Date();
+    const ws = startOfWeek(now);
+    const lastWs = new Date(ws); lastWs.setDate(lastWs.getDate()-7);
+    const cur = [], prev = [];
+    for (let i = 0; i < 7; i++) {
+      const dCur = new Date(ws); dCur.setDate(dCur.getDate()+i);
+      const dPrev = new Date(lastWs); dPrev.setDate(dPrev.getDate()+i);
+      cur.push(+(sumOnDate(dCur)/3600).toFixed(2));
+      prev.push(+(sumOnDate(dPrev)/3600).toFixed(2));
+    }
+    if (charts.compare) charts.compare.destroy();
+    charts.compare = new Chart(document.getElementById('chartCompare'), {
+      type: 'bar',
+      data: {
+        labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
+        datasets: [
+          { label: 'Anterior', data: prev, backgroundColor: 'rgba(156,163,175,0.5)', borderRadius: 4 },
+          { label: 'Atual',    data: cur,  backgroundColor: c.accent, borderRadius: 4 }
+        ]
+      },
+      options: Object.assign({}, commonOpts(), {
+        plugins: {
+          legend: { display: true, labels: { color: c.text, font: {size: 11}, boxWidth: 12 } },
+          tooltip: {
+            backgroundColor: c.tooltipBg, borderColor: c.tooltipBorder, borderWidth: 1,
+            titleColor: c.textMain, bodyColor: c.textMain,
+            callbacks: {
+              label: ctx => {
+                const v = ctx.parsed.y;
+                const h = Math.floor(v); const m = Math.round((v-h)*60);
+                return `${ctx.dataset.label}: ${h}h ${pad(m)}m`;
+              }
+            }
+          }
+        }
+      })
+    });
+  }
+}
+
+function renderHeatmap() {
+  const data = lastYearDailyData();
+  const goalSec = state.settings.dailyGoalH * 3600;
+  const heat = document.getElementById('heatmap');
+  const months = document.getElementById('heatmapMonths');
+  heat.innerHTML = ''; months.innerHTML = '';
+
+  // Build cells column by column (7 rows = days, mon..sun)
+  const cols = Math.ceil(data.length / 7);
+  const monthLabels = [];
+  for (let col = 0; col < cols; col++) {
+    for (let row = 0; row < 7; row++) {
+      const idx = col*7 + row;
+      const day = data[idx];
+      if (!day) continue;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (day.future) cell.classList.add('future');
+      else {
+        const ratio = goalSec ? day.sec / goalSec : 0;
+        if (day.sec === 0) {} // l0 (default)
+        else if (ratio < 0.25) cell.classList.add('l1');
+        else if (ratio < 0.5) cell.classList.add('l2');
+        else if (ratio < 0.85) cell.classList.add('l3');
+        else cell.classList.add('l4');
+        const dateStr = day.date.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+        cell.title = `${dateStr} — ${fmtHM(day.sec)}`;
+      }
+      heat.appendChild(cell);
+    }
+    // capture month label at first row of each column
+    const firstOfCol = data[col*7];
+    if (firstOfCol) {
+      const m = firstOfCol.date.getMonth();
+      if (!monthLabels.length || monthLabels[monthLabels.length-1].m !== m) {
+        monthLabels.push({ m, col });
+      }
+    }
+  }
+  // Render month labels above the grid (approx alignment)
+  const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  let html = '';
+  for (let i = 0; i < monthLabels.length; i++) {
+    const cur = monthLabels[i];
+    const next = monthLabels[i+1];
+    const span = (next ? next.col : cols) - cur.col;
+    const widthPx = span * (14 + 3); // cell + gap
+    html += `<div style="width:${widthPx}px">${monthNames[cur.m]}</div>`;
+  }
+  months.innerHTML = html;
+}
+
+// ---------- RENDER ----------
+function render(opts) {
+  // opts.charts === false  → skip heavy chart redraws (used by 1-second tick)
+  const drawCharts = !opts || opts.charts !== false;
+  // Greeting + date
+  const now = new Date();
+  const h = now.getHours();
+  const greet = h < 6 ? 'Boa madrugada!' : h < 12 ? 'Bom dia!' : h < 18 ? 'Boa tarde!' : 'Boa noite!';
+  document.getElementById('greeting').textContent = greet + ' 👋';
+  document.getElementById('todayDate').textContent =
+    now.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  document.getElementById('todayDay').textContent =
+    now.toLocaleDateString('pt-BR', { weekday:'long' }).replace(/^./, c => c.toUpperCase());
+
+  // Timer + status + buttons
+  const elapsedMs = currentElapsedMs();
+  const pauseMs = currentPauseMs();
+  const netSec = currentNetSec();
+  // O display grande mostra o total acumulado do dia (todas as sessões + sessão atual em andamento)
+  const todaySecForDisplay = sumOnDate(now);
+  document.getElementById('timerDisplay').textContent = fmtHMS(todaySecForDisplay);
+
+  const pill = document.getElementById('statusPill');
+  const stext = document.getElementById('statusText');
+  pill.classList.remove('running','paused');
+  if (state.current?.status === 'running') {
+    pill.classList.add('running'); stext.textContent = 'Em andamento';
+  } else if (state.current?.status === 'paused') {
+    pill.classList.add('paused'); stext.textContent = 'Pausado';
+  } else { stext.textContent = 'Parado'; }
+
+  document.getElementById('btnStart').disabled = state.current?.status === 'running';
+  document.getElementById('btnPause').disabled = !state.current || state.current.status !== 'running';
+  document.getElementById('btnStop').disabled = !state.current;
+
+  // Current task badge
+  const taskBadge = document.getElementById('currentTaskBadge');
+  if (state.current && state.current.task) {
+    document.getElementById('currentTaskName').textContent = state.current.task.content;
+    taskBadge.style.display = 'inline-flex';
+  } else {
+    taskBadge.style.display = 'none';
+  }
+
+  // Session info
+  if (state.current) {
+    document.getElementById('sessStart').textContent =
+      new Date(state.current.start).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sessElapsed').textContent = fmtHMS(elapsedMs/1000);
+    document.getElementById('sessPause').textContent = fmtHMS(pauseMs/1000);
+    document.getElementById('sessNet').textContent = fmtHMS(netSec);
+  } else {
+    document.getElementById('sessStart').textContent = '—';
+    document.getElementById('sessElapsed').textContent = '00:00:00';
+    document.getElementById('sessPause').textContent = '00:00:00';
+    document.getElementById('sessNet').textContent = '00:00:00';
+  }
+
+  // KPIs
+  const today = startOfDay(now);
+  const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+  const todaySec = sumOnDate(today);
+  const yestSec = sumOnDate(yest);
+  document.getElementById('kpiToday').textContent = fmtHM(todaySec);
+  setTrend('trendToday', todaySec, yestSec, 'vs ontem');
+
+  const ws = startOfWeek(now);
+  const we = new Date(ws); we.setDate(we.getDate() + 7);
+  const lastWs = new Date(ws); lastWs.setDate(lastWs.getDate() - 7);
+  const weekSec = sumBetween(ws, we);
+  const lastWeekSec = sumBetween(lastWs, ws);
+  document.getElementById('kpiWeek').textContent = fmtHM(weekSec);
+  setTrend('trendWeek', weekSec, lastWeekSec, 'vs semana anterior');
+
+  const ms = startOfMonth(now);
+  const me = new Date(ms); me.setMonth(me.getMonth() + 1);
+  const lastMs = new Date(ms); lastMs.setMonth(lastMs.getMonth() - 1);
+  const monthSec = sumBetween(ms, me);
+  const lastMonthSec = sumBetween(lastMs, ms);
+  document.getElementById('kpiMonth').textContent = fmtHM(monthSec);
+  setTrend('trendMonth', monthSec, lastMonthSec, 'vs mês anterior');
+
+  // Média diária do mês — calcula só sobre dias com trabalho
+  const daysActive = daysWorkedThisMonth();
+  const avgPerActiveDay = daysActive > 0 ? monthSec / daysActive : 0;
+  document.getElementById('kpiAvg').textContent = fmtHM(avgPerActiveDay);
+  document.getElementById('avgSub').textContent =
+    daysActive > 0 ? `em ${daysActive} ${daysActive === 1 ? 'dia' : 'dias'} trabalhados` : 'sem dias ativos ainda';
+
+  // Goal
+  const goalSec = state.settings.dailyGoalH * 3600;
+  const rawPct = (todaySec / goalSec) * 100;
+  const pct = Math.min(100, rawPct);
+  document.getElementById('kpiGoal').textContent = Math.round(rawPct) + '%';
+  document.getElementById('goalFill').style.width = pct + '%';
+  document.getElementById('goalFill').style.background =
+    rawPct >= 100 ? 'var(--accent)' : rawPct >= 50 ? 'var(--accent)' : 'var(--warning)';
+  const remaining = goalSec - todaySec;
+  const goalRemEl = document.getElementById('goalRemaining');
+  goalRemEl.classList.remove('up','down','neutral');
+  if (remaining <= 0) {
+    const extra = Math.abs(remaining);
+    goalRemEl.textContent = extra > 60 ? `🎉 Meta batida +${fmtHM(extra)}` : '🎉 Meta atingida!';
+    goalRemEl.classList.add('up');
+  } else {
+    goalRemEl.textContent = `Faltam ${fmtHM(remaining)} (de ${state.settings.dailyGoalH}h)`;
+    goalRemEl.classList.add('neutral');
+  }
+
+  // Streak
+  const sk = streak();
+  document.getElementById('kpiStreak').textContent = sk + (sk === 1 ? ' dia' : ' dias');
+  const ssub = document.getElementById('streakSub');
+  if (sk === 0) ssub.textContent = 'Comece hoje! 💪';
+  else if (sk < 3) ssub.textContent = 'Mantém o ritmo!';
+  else if (sk < 7) ssub.textContent = 'Excelente! 🔥';
+  else ssub.textContent = 'Imparável! 🚀';
+
+  // Bottom stats
+  const last7 = last7DaysData();
+  const total7 = last7.reduce((a,x)=>a+x.sec, 0);
+  document.getElementById('statAvgDay').textContent = fmtHM(total7/7);
+  document.getElementById('statSessWeek').textContent = sessionCountThisWeek();
+  document.getElementById('statLongest').textContent = fmtHM(longestSessionThisMonth());
+  const bw = bestWorstDayThisMonth();
+  const fmtDay = ts => new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  document.getElementById('statBestDay').textContent = bw.best
+    ? `${fmtHM(bw.best.sec)} (${fmtDay(bw.best.day)})` : '—';
+  document.getElementById('statWorstDay').textContent = bw.worst
+    ? `${fmtHM(bw.worst.sec)} (${fmtDay(bw.worst.day)})` : '—';
+  document.getElementById('statProjection').textContent = fmtHM(monthProjection());
+  const eff = efficiencyToday();
+  document.getElementById('statEfficiency').textContent = eff === null ? '—' : Math.round(eff) + '%';
+  const avgP = avgPauseAllSessions();
+  document.getElementById('statAvgPause').textContent = avgP === null ? '—' : fmtHMS(avgP);
+  const fl = firstLastToday();
+  document.getElementById('statFirst').textContent = fl.first
+    ? new Date(fl.first).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+  document.getElementById('statLast').textContent = fl.last
+    ? new Date(fl.last).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+  document.getElementById('statTotal').textContent = fmtHM(totalAccumulated());
+  document.getElementById('statDaysMonth').textContent = daysWorkedThisMonth();
+  // Academia stats
+  document.getElementById('statGymMusc').textContent = `${workoutsThisWeek('musculacao')}/7`;
+  document.getElementById('statGymCardio').textContent = `${workoutsThisWeek('cardio')}/7`;
+  const wstreak = workoutStreak();
+  document.getElementById('statGymStreak').textContent = `${wstreak} ${wstreak === 1 ? 'dia' : 'dias'}`;
+
+  // Day detail (sempre, é leve)
+  renderDayDetail();
+
+  // Todoist
+  renderTodoistTasks();
+  renderTodoistReports();
+
+  if (drawCharts) {
+    // Recent sessions
+    renderSessions();
+
+    // Charts + heatmap
+    renderCharts();
+    renderHeatmap();
+  }
+
+  // Settings input
+  document.getElementById('goalInput').value = state.settings.dailyGoalH;
+}
+
+function setTrend(id, cur, prev, label) {
+  const el = document.getElementById(id);
+  el.classList.remove('up','down','neutral');
+  if (prev === 0 && cur === 0) {
+    el.textContent = '— ' + label; el.classList.add('neutral'); return;
+  }
+  if (prev === 0) {
+    el.textContent = '↑ novo recorde ' + label; el.classList.add('up'); return;
+  }
+  const diff = ((cur - prev) / prev) * 100;
+  const arrow = diff >= 0 ? '▲' : '▼';
+  el.textContent = `${arrow} ${Math.abs(diff).toFixed(0)}% ${label}`;
+  el.classList.add(diff >= 0 ? 'up' : 'down');
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function renderTaskHTML(t) {
+  const p = t.priority || 1;
+  const pCls = p === 4 ? 'p1' : p === 3 ? 'p2' : p === 2 ? 'p3' : 'p4';
+  const pName = PRIORITY_NAMES[p] || 'P4';
+  const isCurrent = state.current && state.current.task && String(state.current.task.id) === String(t.id);
+  const recur = (t.due && t.due.is_recurring) ? ' 🔁' : '';
+  const proj = todoist.projectMap[t.project_id];
+  const projName = proj ? proj.name : '';
+  const projColor = todoist.projectColorHex(proj && proj.color) || 'var(--text-muted)';
+  const projTag = projName
+    ? `<span class="task-project" style="color:${projColor};">${escapeHtml(projName)}<span style="opacity:.5;">#</span></span>`
+    : '';
+  const labels = (t.labels && t.labels.length) ? `<span class="task-meta">🏷 ${t.labels.map(escapeHtml).join(', ')}</span>` : '';
+  return `<div class="todoist-task ${isCurrent ? 'current' : ''}" data-task-id="${escapeHtml(t.id)}">
+    <span class="task-checkbox prio-${pCls}" title="${pName}"></span>
+    <div class="task-content">
+      <div class="task-title">${escapeHtml(t.content)}${recur}</div>
+      ${labels}
+    </div>
+    ${projTag}
+    <div class="task-actions">
+      ${isCurrent
+        ? '<span style="color:var(--accent); font-size:11px; padding:0 8px;">⏱ ativa</span>'
+        : `<button class="start" data-action="start" data-task-id="${escapeHtml(t.id)}" data-task-content="${escapeHtml(t.content)}" title="Iniciar sessão">▶</button>`}
+      <button class="complete" data-action="complete" data-task-id="${escapeHtml(t.id)}" title="Concluir tarefa">✓</button>
+    </div>
+  </div>`;
+}
+
+function renderTodoistTasks() {
+  const section = document.getElementById('todoistSection');
+  const list = document.getElementById('todoistList');
+  if (!section || !list) return;
+
+  if (!todoist.token) { section.style.display = 'none'; return; }
+
+  const isToday = sameDay(selectedDay, new Date());
+  if (!isToday) {
+    section.style.display = 'block';
+    list.innerHTML = '<div class="empty">Tarefas do Todoist aparecem só no dia de hoje.</div>';
+    return;
+  }
+  section.style.display = 'block';
+
+  if (todoist.tasks.length === 0) {
+    list.innerHTML = '<div class="empty">Nenhuma tarefa no filtro atual. ✨</div>';
+    return;
+  }
+
+  // Agrupa: atrasadas vs hoje vs sem data
+  const today = startOfDay(new Date()).getTime();
+  const tomorrow = today + 86400000;
+  const overdue = [], todayList = [], other = [];
+  for (const t of todoist.tasks) {
+    if (!t.due || !t.due.date) { other.push(t); continue; }
+    const due = new Date(t.due.date + 'T00:00:00').getTime();
+    if (due < today) overdue.push(t);
+    else if (due >= today && due < tomorrow) todayList.push(t);
+    else other.push(t);
+  }
+  // Ordena cada grupo por prioridade (P1 primeiro)
+  const byPriority = (a,b) => (b.priority || 1) - (a.priority || 1);
+  overdue.sort(byPriority);
+  todayList.sort(byPriority);
+  other.sort(byPriority);
+
+  let html = '';
+  if (overdue.length) {
+    html += `<div class="todoist-group-header overdue">Atrasada · ${overdue.length}</div>`;
+    html += overdue.map(renderTaskHTML).join('');
+  }
+  if (todayList.length) {
+    const todayLabel = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'short', weekday:'long' });
+    html += `<div class="todoist-group-header">${escapeHtml(todayLabel)} · ${todayList.length}</div>`;
+    html += todayList.map(renderTaskHTML).join('');
+  }
+  if (other.length) {
+    html += `<div class="todoist-group-header">Outras · ${other.length}</div>`;
+    html += other.map(renderTaskHTML).join('');
+  }
+  list.innerHTML = html;
+
+  list.querySelectorAll('button[data-action]').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = b.dataset.taskId;
+      const action = b.dataset.action;
+      if (action === 'start') {
+        startTimerForTask({ id, content: b.dataset.taskContent });
+      } else if (action === 'complete') {
+        if (confirm('Marcar tarefa como concluída no Todoist?')) {
+          if (state.current && state.current.task && String(state.current.task.id) === String(id)) {
+            stopTimer();
+          }
+          completeTodoistTask(id);
+        }
+      }
+    });
+  });
+}
+
+// Mapeia nomes de cores do Todoist para hex
+todoist.projectColorHex = function(name) {
+  const map = {
+    berry_red: '#b8255f', red: '#db4035', orange: '#ff9933', yellow: '#fad000',
+    olive_green: '#afb83b', lime_green: '#7ecc49', green: '#299438',
+    mint_green: '#6accbc', teal: '#158fad', sky_blue: '#14aaf5', light_blue: '#96c3eb',
+    blue: '#4073ff', grape: '#884dff', violet: '#af38eb', lavender: '#eb96eb',
+    magenta: '#e05194', salmon: '#ff8d85', charcoal: '#808080', grey: '#b8b8b8', taupe: '#ccac93'
+  };
+  return name && map[name] ? map[name] : null;
+};
+
+function renderTodoistReports() {
+  const card = document.getElementById('todoistReportCard');
+  if (!card) return;
+  if (!todoist.token) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const today = todayTodoistReport();
+  const week = weekTodoistReport();
+  const month = monthTodoistReport();
+
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('rptTodayTotal', today.total); set('rptWeekTotal', week.total); set('rptMonthTotal', month.total);
+  set('rptTodayP1', today.p1); set('rptWeekP1', week.p1); set('rptMonthP1', month.p1);
+  set('rptTodayP2', today.p2); set('rptWeekP2', week.p2); set('rptMonthP2', month.p2);
+  set('rptTodayP3', today.p3); set('rptWeekP3', week.p3); set('rptMonthP3', month.p3);
+  set('rptTodayP4', today.p4); set('rptWeekP4', week.p4); set('rptMonthP4', month.p4);
+  set('rptTodayRec', today.recurring); set('rptWeekRec', week.recurring); set('rptMonthRec', month.recurring);
+  set('rptTodayPos', today.postponed); set('rptWeekPos', week.postponed); set('rptMonthPos', month.postponed);
+}
+
+// ---------- DAY DETAIL RENDER ----------
+let selectedDay = startOfDay(new Date());
+
+function renderDayDetail() {
+  // Atualiza date picker
+  const yyyy = selectedDay.getFullYear();
+  const mm = pad(selectedDay.getMonth()+1);
+  const dd = pad(selectedDay.getDate());
+  const picker = document.getElementById('dayPicker');
+  if (picker) picker.value = `${yyyy}-${mm}-${dd}`;
+
+  const fmtTime = ts => new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const fmtDateTime = ts => {
+    const d = new Date(ts);
+    return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' ' + fmtTime(ts);
+  };
+
+  // ===== TRABALHO =====
+  const sessions = sessionsForDay(selectedDay);
+  const list = [...sessions];
+  let currentExtra = null;
+  if (state.current && sameDay(new Date(state.current.start), selectedDay)) {
+    currentExtra = {
+      start: state.current.start,
+      end: Date.now(),
+      durationSec: currentNetSec(),
+      isCurrent: true
+    };
+    list.push(currentExtra);
+    list.sort((a,b) => a.start - b.start);
+  }
+  const workEl = document.getElementById('dayWork');
+  if (list.length === 0) {
+    workEl.innerHTML = '<div class="empty">Nenhuma sessão de trabalho neste dia.</div>';
+  } else {
+    workEl.innerHTML = list.map(s => {
+      const fromTime = fmtTime(s.start);
+      const toTime = s.isCurrent ? '<em style="color:var(--accent)">agora</em>' : fmtTime(s.end);
+      return `<div class="item">
+        <span>• ${fromTime} → ${toTime}${s.isCurrent ? ' <span style="color:var(--accent); font-size:11px;">(em andamento)</span>' : ''}</span>
+        <span class="duration">${fmtHM(s.durationSec)}</span>
+      </div>`;
+    }).join('');
+  }
+  const workTotal = list.reduce((a,s)=>a+s.durationSec, 0);
+  document.getElementById('dayWorkTotal').textContent = `👉 Total trabalhado: ${fmtHM(workTotal)}`;
+
+  // ===== PAUSAS =====
+  const pauses = pausesForDay(selectedDay);
+  const pausesEl = document.getElementById('dayPauses');
+  if (pauses.length === 0) {
+    pausesEl.innerHTML = '<div class="empty">Nenhuma pausa entre sessões neste dia.</div>';
+  } else {
+    pausesEl.innerHTML = pauses.map(p => {
+      return `<div class="item">
+        <span>• ${fmtTime(p.start)} → ${fmtTime(p.end)}</span>
+        <span class="duration muted">${fmtHM(p.durationSec)}</span>
+      </div>`;
+    }).join('');
+  }
+  const pausesTotal = pauses.reduce((a,p)=>a+p.durationSec, 0);
+  document.getElementById('dayPausesTotal').textContent = `⏸ Total de pausas: ${fmtHM(pausesTotal)}`;
+
+  // ===== SONO =====
+  const sleeps = sleepsForDay(selectedDay);
+  const sleepEl = document.getElementById('daySleep');
+  if (sleeps.length === 0) {
+    sleepEl.innerHTML = '<div class="empty">Nenhum registro de sono neste dia. Use o formulário abaixo pra adicionar.</div>';
+  } else {
+    sleepEl.innerHTML = sleeps.map(s => {
+      const startD = new Date(s.start);
+      const endD = new Date(s.end);
+      const sameDayStart = sameDay(startD, endD);
+      const fromStr = sameDayStart ? fmtTime(s.start) : fmtDateTime(s.start);
+      const toStr = fmtTime(s.end);
+      return `<div class="item">
+        <span>• Dormiu ${fromStr} → Acordou ${toStr}</span>
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span class="duration">${fmtHM(s.durationSec)}</span>
+          <button class="si-delete" data-id="${s.id}" title="Excluir">×</button>
+        </span>
+      </div>`;
+    }).join('');
+    sleepEl.querySelectorAll('.si-delete').forEach(b => {
+      b.addEventListener('click', () => {
+        if (confirm('Excluir registro de sono?')) deleteSleep(b.dataset.id);
+      });
+    });
+  }
+  const sleepTotal = sleeps.reduce((a,s)=>a+s.durationSec, 0);
+
+  // ===== ACADEMIA =====
+  const muscDone = workoutDoneOnDay(selectedDay, 'musculacao');
+  const cardioDone = workoutDoneOnDay(selectedDay, 'cardio');
+  const muscMin = totalWorkoutMinutes(selectedDay, 'musculacao');
+  const cardioMin = totalWorkoutMinutes(selectedDay, 'cardio');
+
+  const muscBtn = document.getElementById('gymToggleMusc');
+  const cardioBtn = document.getElementById('gymToggleCardio');
+  muscBtn.classList.toggle('done', muscDone);
+  cardioBtn.classList.toggle('done', cardioDone);
+  document.getElementById('gymStatusMusc').textContent = muscDone
+    ? (muscMin > 0 ? `✓ ${muscMin} min` : '✓ feito')
+    : 'não feito';
+  document.getElementById('gymStatusCardio').textContent = cardioDone
+    ? (cardioMin > 0 ? `✓ ${cardioMin} min` : '✓ feito')
+    : 'não feito';
+
+  const workouts = workoutsForDay(selectedDay);
+  const gymEl = document.getElementById('dayGym');
+  if (workouts.length === 0) {
+    gymEl.innerHTML = '<div class="empty">Nenhum treino registrado neste dia.</div>';
+  } else {
+    gymEl.innerHTML = workouts.map(w => {
+      const pillClass = w.type === 'musculacao' ? 'musc' : 'cardio';
+      const pillName = w.type === 'musculacao' ? '💪 Musculação' : '🏃 Cardio';
+      const dur = w.durationMin ? `· ${w.durationMin} min` : '';
+      const notes = w.notes ? `· ${w.notes}` : '';
+      return `<div class="item gym-list-item">
+        <span><span class="gym-type-pill ${pillClass}">${pillName}</span>${dur} ${notes}</span>
+        <button class="si-delete" data-id="${w.id}" title="Excluir">×</button>
+      </div>`;
+    }).join('');
+    gymEl.querySelectorAll('.si-delete').forEach(b => {
+      b.addEventListener('click', () => {
+        if (confirm('Excluir este treino?')) deleteWorkout(b.dataset.id);
+      });
+    });
+  }
+
+  // ===== RESUMO =====
+  document.getElementById('dayResumoWork').textContent = fmtHM(workTotal);
+  document.getElementById('dayResumoPauses').textContent = fmtHM(pausesTotal);
+  document.getElementById('dayResumoSleep').textContent = fmtHM(sleepTotal);
+  document.getElementById('dayResumoMusc').textContent = muscDone
+    ? (muscMin > 0 ? `✅ ${muscMin} min` : '✅ feito')
+    : '—';
+  document.getElementById('dayResumoCardio').textContent = cardioDone
+    ? (cardioMin > 0 ? `✅ ${cardioMin} min` : '✅ feito')
+    : '—';
+}
+
+function renderSessions() {
+  const el = document.getElementById('sessionList');
+  if (state.sessions.length === 0) {
+    el.innerHTML = `<div class="empty">Nenhuma sessão ainda. Clique em <strong>Iniciar</strong> pra começar!</div>`;
+    return;
+  }
+  const sorted = [...state.sessions].sort((a,b) => b.start - a.start).slice(0, 30);
+  el.innerHTML = sorted.map(s => {
+    const sd = new Date(s.start), ed = new Date(s.end);
+    const dateStr = sd.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+    const timeStr = sd.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+      + ' – ' + ed.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const taskTag = s.task && s.task.content
+      ? `<span class="si-time" style="color:var(--accent);">🎯 ${escapeHtml(s.task.content)}</span>` : '';
+    return `
+      <div class="session-item">
+        <div class="si-left">
+          <span class="si-date">${dateStr}</span>
+          <span class="si-time">${timeStr}</span>
+          ${taskTag}
+        </div>
+        <span class="si-duration">${fmtHM(s.durationSec)}</span>
+        <button class="si-delete" data-id="${s.id}" title="Excluir">×</button>
+      </div>`;
+  }).join('');
+  el.querySelectorAll('.si-delete').forEach(b => {
+    b.addEventListener('click', () => {
+      if (confirm('Excluir esta sessão?')) {
+        state.sessions = state.sessions.filter(x => x.id !== b.dataset.id);
+        save(); render();
+      }
+    });
+  });
+}
+
+// ---------- BACKUP ----------
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `painel-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.sessions) throw new Error('Arquivo inválido');
+      if (confirm('Substituir os dados atuais pelo arquivo? (faça um export antes se quiser preservar)')) {
+        Object.assign(state, data);
+        state.current = null;
+        save(); render();
+        alert('Dados importados com sucesso!');
+      }
+    } catch (err) { alert('Erro ao importar: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+function resetAll() {
+  if (!confirm('Apagar TODOS os dados e sessões? Isso não pode ser desfeito.')) return;
+  if (!confirm('Tem certeza absoluta? Recomendo exportar antes.')) return;
+  state.sessions = [];
+  state.current = null;
+  save(); render();
+}
+
+// ---------- EVENTS ----------
+document.getElementById('btnStart').addEventListener('click', startTimer);
+document.getElementById('btnPause').addEventListener('click', pauseTimer);
+document.getElementById('btnStop').addEventListener('click', () => {
+  if (confirm('Encerrar a sessão atual e salvar?')) stopTimer();
+});
+document.getElementById('goalInput').addEventListener('change', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v) && v > 0) { state.settings.dailyGoalH = v; save(); render(); }
+});
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e => {
+  if (e.target.files[0]) importData(e.target.files[0]);
+});
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+// Theme toggle
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+// Todoist
+document.getElementById('todoistConnect').addEventListener('click', connectTodoist);
+document.getElementById('todoistDisconnect').addEventListener('click', disconnectTodoist);
+document.getElementById('todoistRefresh').addEventListener('click', () => fetchTodoistTasks());
+
+// Day detail navigation
+document.getElementById('dayPicker').addEventListener('change', e => {
+  const v = e.target.value;
+  if (!v) return;
+  const [y,m,d] = v.split('-').map(Number);
+  selectedDay = new Date(y, m-1, d);
+  renderDayDetail();
+});
+document.getElementById('dayPrev').addEventListener('click', () => {
+  selectedDay = new Date(selectedDay);
+  selectedDay.setDate(selectedDay.getDate() - 1);
+  renderDayDetail();
+});
+document.getElementById('dayNext').addEventListener('click', () => {
+  selectedDay = new Date(selectedDay);
+  selectedDay.setDate(selectedDay.getDate() + 1);
+  renderDayDetail();
+});
+document.getElementById('dayToday').addEventListener('click', () => {
+  selectedDay = startOfDay(new Date());
+  renderDayDetail();
+});
+
+// Sleep form
+document.getElementById('sleepAddBtn').addEventListener('click', () => {
+  const startVal = document.getElementById('sleepStartInput').value;
+  const endVal = document.getElementById('sleepEndInput').value;
+  if (!startVal || !endVal) { alert('Preencha as duas datas/horários (Dormiu e Acordou).'); return; }
+  const startTs = new Date(startVal).getTime();
+  const endTs = new Date(endVal).getTime();
+  if (isNaN(startTs) || isNaN(endTs)) { alert('Datas inválidas.'); return; }
+  addSleep(startTs, endTs);
+  document.getElementById('sleepStartInput').value = '';
+  document.getElementById('sleepEndInput').value = '';
+});
+
+// Academia toggles + form
+document.getElementById('gymToggleMusc').addEventListener('click', () => {
+  toggleQuickWorkout(selectedDay, 'musculacao');
+});
+document.getElementById('gymToggleCardio').addEventListener('click', () => {
+  toggleQuickWorkout(selectedDay, 'cardio');
+});
+document.getElementById('gymAddBtn').addEventListener('click', () => {
+  const type = document.getElementById('gymTypeInput').value;
+  const dur = parseInt(document.getElementById('gymDurationInput').value, 10);
+  const notes = document.getElementById('gymNotesInput').value;
+  addWorkout(selectedDay, type, isNaN(dur) ? null : dur, notes);
+  document.getElementById('gymDurationInput').value = '';
+  document.getElementById('gymNotesInput').value = '';
+});
+
+// Sync (GitHub Gist) buttons
+document.getElementById('ghConnect').addEventListener('click', connectGist);
+document.getElementById('ghDisconnect').addEventListener('click', disconnectGist);
+document.getElementById('ghSyncNow').addEventListener('click', async () => {
+  if (!sync.token || !sync.gistId) {
+    alert('Conecte primeiro com seu token e Gist ID.');
+    return;
+  }
+  await pullFromGist();
+  await pushToGist();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!state.current || state.current.status === 'paused') startTimer();
+    else pauseTimer();
+  } else if (e.code === 'Escape') {
+    if (state.current && confirm('Encerrar a sessão atual?')) stopTimer();
+  }
+});
+
+// Save on close
+window.addEventListener('beforeunload', save);
+
+// ---------- INIT ----------
+loadTheme();
+loadSyncConfig();
+loadTodoistConfig();
+load();
+render();
+
+// Pré-preenche os inputs do Todoist e busca tarefas se já configurado
+if (todoist.token) {
+  document.getElementById('todoistTokenInput').value = todoist.token;
+  document.getElementById('todoistFilterInput').value = todoist.filter || 'today';
+  setTodoistStatus('connected');
+  fetchTodoistTasks();
+}
+
+// Auto-refresh tarefas Todoist a cada 60s
+setInterval(() => {
+  if (todoist.token) fetchTodoistTasks();
+}, 60000);
+
+// Pré-preenche os inputs e tenta puxar do gist se já estiver configurado
+if (sync.token && sync.gistId) {
+  document.getElementById('ghTokenInput').value = sync.token;
+  document.getElementById('ghGistInput').value = sync.gistId;
+  setSyncStatus('connected');
+  pullFromGist({ silent: true });
+}
+
+// Pull periódico a cada 30s pra captar mudanças vindas de outros dispositivos
+setInterval(() => {
+  if (sync.token && sync.gistId && !sync.pulling) pullFromGist({ silent: true });
+}, 30000);
+// Tick every second when timer is running — only updates timer display + KPIs (no charts)
+setInterval(() => {
+  if (state.current && state.current.status === 'running') render({ charts: false });
+}, 1000);
+// Full re-render (charts + heatmap) every 5 seconds — keeps the chart bar in sync with the timer
+setInterval(() => render(), 5000);
+</script>
+</body>
+</html>
