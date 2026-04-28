@@ -1339,17 +1339,34 @@ async function fetchTodoistTasks() {
       }
     } catch (e) { /* ignora se falhar */ }
 
-    // Completed do último mês (pra reports)
+    // Completed do último mês (pra reports) — pagina via cursor pra pegar tudo
     const since = new Date(); since.setDate(since.getDate() - 31); since.setHours(0,0,0,0);
     const until = new Date(); until.setHours(23,59,59,999);
     const sinceStr = since.toISOString().replace(/\.\d{3}Z$/, 'Z');
     const untilStr = until.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    todoist.completedMonth = [];
     try {
-      const comp = await todoistRequest(
-        `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200`
-      );
-      todoist.completedMonth = (comp && (comp.items || comp.results)) || [];
-    } catch (e) { todoist.completedMonth = []; }
+      let cursor = null;
+      let pageCount = 0;
+      do {
+        const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
+        const comp = await todoistRequest(
+          `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200${cursorParam}`
+        );
+        const items = (comp && (comp.items || comp.results)) || [];
+        todoist.completedMonth.push(...items);
+        cursor = comp && comp.next_cursor;
+        pageCount++;
+        if (pageCount > 20) break; // safety: max 20 páginas (~4000 tasks)
+      } while (cursor);
+      console.log(`[Painel] Todoist completed fetched: ${todoist.completedMonth.length} tasks em ${pageCount} página(s)`);
+      if (todoist.completedMonth.length > 0) {
+        console.log('[Painel] Primeira completed (sample):', todoist.completedMonth[0]);
+      }
+    } catch (e) {
+      console.warn('[Painel] Erro ao buscar completed:', e.message);
+      todoist.completedMonth = [];
+    }
 
     // Activity log para detectar adiamentos (best-effort) — pode não existir mais na v1
     try {
@@ -1419,18 +1436,24 @@ const PRIORITY_NAMES = { 4: 'P1', 3: 'P2', 2: 'P3', 1: 'P4' };
 
 function todoistCompletedInRange(fromMs, toMs) {
   return todoist.completedMonth.filter(c => {
-    const t = new Date(c.completed_at).getTime();
+    // v1 API pode usar `completed_at`, `completed_date`, ou `date_completed`
+    const dateStr = c.completed_at || c.completed_date || c.date_completed
+      || (c.item_object && (c.item_object.completed_at || c.item_object.date_completed));
+    if (!dateStr) return false;
+    const t = new Date(dateStr).getTime();
     return t >= fromMs && t < toMs;
   });
 }
 function priorityOfCompleted(item) {
-  // o completed_get_all com annotate_items=true inclui item_object com priority
+  // Tenta vários caminhos pra encontrar a prioridade (formato v1 vs sync v9)
+  if (item.priority) return item.priority;
   if (item.item_object && item.item_object.priority) return item.item_object.priority;
   if (item.meta_data && item.meta_data.note_added && item.meta_data.note_added.priority) return item.meta_data.note_added.priority;
   return 1; // default P4
 }
 function isRecurringCompleted(item) {
-  // Heurística: se item_object tem due.is_recurring, ou se aparece +1 vez no mês com mesmo task_id
+  // Heurística: due.is_recurring no nível raiz ou em item_object
+  if (item.due && item.due.is_recurring) return true;
   if (item.item_object && item.item_object.due && item.item_object.due.is_recurring) return true;
   return false;
 }
