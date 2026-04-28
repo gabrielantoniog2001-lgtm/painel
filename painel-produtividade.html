@@ -1143,6 +1143,10 @@ body.light .prio-pill.p4 { color: var(--text-muted); }
         <input type="text" class="input-num" id="todoistFilterInput" style="width: 260px;" placeholder="today | overdue (recomendado)">
       </div>
       <div class="settings-row">
+        <span class="label">CORS Proxy <span style="color:var(--text-dim); font-size:11px;">(necessário — Todoist bloqueia direto)</span></span>
+        <input type="text" class="input-num" id="todoistProxyInput" style="width: 260px;" placeholder="https://corsproxy.io/?url=">
+      </div>
+      <div class="settings-row">
         <span class="label">Ações</span>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn-sm" id="todoistConnect">🔗 Conectar</button>
@@ -1234,6 +1238,7 @@ const TODOIST_KEY = 'painel-todoist.v1';
 const todoist = {
   token: null,
   filter: 'today | overdue',
+  corsProxy: '',      // URL de proxy CORS (vazio = tenta direto)
   tasks: [],          // tasks ativas que casam com o filtro
   projects: [],       // [{id, name, color}]
   projectMap: {},     // { id: { name, color } }
@@ -1250,6 +1255,7 @@ function loadTodoistConfig() {
       const parsed = JSON.parse(raw);
       todoist.token = parsed.token || null;
       todoist.filter = parsed.filter || 'today';
+      todoist.corsProxy = parsed.corsProxy || '';
       todoist.lastFetch = parsed.lastFetch || null;
     }
   } catch(e) {}
@@ -1257,7 +1263,8 @@ function loadTodoistConfig() {
 function saveTodoistConfig() {
   try {
     localStorage.setItem(TODOIST_KEY, JSON.stringify({
-      token: todoist.token, filter: todoist.filter, lastFetch: todoist.lastFetch
+      token: todoist.token, filter: todoist.filter,
+      corsProxy: todoist.corsProxy, lastFetch: todoist.lastFetch
     }));
   } catch(e) {}
 }
@@ -1278,7 +1285,20 @@ function setTodoistStatus(s, detail) {
 
 async function todoistRequest(url, options = {}) {
   if (!todoist.token) throw new Error('sem token');
-  const res = await fetch(url, {
+  // Aplica CORS proxy se configurado
+  let finalUrl = url;
+  if (todoist.corsProxy) {
+    const proxy = todoist.corsProxy;
+    // Suporta tanto formato "?url=" (corsproxy.io) quanto pass-through (Cloudflare Worker)
+    if (proxy.includes('?url=') || proxy.endsWith('?')) {
+      finalUrl = proxy + encodeURIComponent(url);
+    } else {
+      // Cloudflare Worker style: https://meu-worker.workers.dev{path}{query}
+      const u = new URL(url);
+      finalUrl = proxy.replace(/\/$/, '') + u.pathname + u.search;
+    }
+  }
+  const res = await fetch(finalUrl, {
     ...options,
     headers: {
       'Authorization': `Bearer ${todoist.token}`,
@@ -1358,12 +1378,15 @@ async function completeTodoistTask(id) {
 async function connectTodoist() {
   const tokenEl = document.getElementById('todoistTokenInput');
   const filterEl = document.getElementById('todoistFilterInput');
+  const proxyEl = document.getElementById('todoistProxyInput');
   const token = tokenEl.value.trim();
   const filter = (filterEl.value || 'today').trim();
+  const proxy = (proxyEl ? proxyEl.value : '').trim();
   if (!token) { alert('Cole o seu token do Todoist primeiro.'); return; }
 
   todoist.token = token;
   todoist.filter = filter;
+  todoist.corsProxy = proxy;
   saveTodoistConfig();
   await fetchTodoistTasks();
   if (todoist.status === 'ok') alert('✅ Conectado ao Todoist!');
@@ -1379,6 +1402,8 @@ function disconnectTodoist() {
   saveTodoistConfig();
   document.getElementById('todoistTokenInput').value = '';
   document.getElementById('todoistFilterInput').value = todoist.filter;
+  const proxyEl = document.getElementById('todoistProxyInput');
+  if (proxyEl) proxyEl.value = todoist.corsProxy || '';
   setTodoistStatus('idle');
   render();
 }
@@ -2959,7 +2984,8 @@ function renderSessions() {
 
 // ---------- BACKUP ----------
 function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const payload = { ...state, exportedAt: Date.now() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -2974,6 +3000,34 @@ function importData(file) {
       const data = JSON.parse(e.target.result);
       if (!data.sessions) throw new Error('Arquivo inválido');
       if (confirm('Substituir os dados atuais pelo arquivo? (faça um export antes se quiser preservar)')) {
+        // Se o arquivo tinha sessão em andamento, converte ela em sessão completa pra preservar o tempo
+        if (data.current && typeof data.current.start === 'number') {
+          const c = data.current;
+          const pauseMs = c.totalPauseMs || 0;
+          let end;
+          if (c.status === 'paused' && c.pausedAt) {
+            end = c.pausedAt;
+          } else {
+            end = data.exportedAt || Date.now();
+          }
+          const elapsed = end - c.start;
+          const netSec = Math.max(0, Math.floor((elapsed - pauseMs)/1000));
+          if (netSec >= 5) {
+            data.sessions = Array.isArray(data.sessions) ? data.sessions : [];
+            const importedSession = {
+              id: 'sess_imp_' + c.start,
+              start: c.start,
+              end: end,
+              durationSec: netSec,
+              pauseSec: Math.floor(pauseMs/1000)
+            };
+            if (c.task) importedSession.task = c.task;
+            // só adiciona se não tiver duplicata (mesmo id)
+            if (!data.sessions.some(s => s.id === importedSession.id)) {
+              data.sessions.push(importedSession);
+            }
+          }
+        }
         Object.assign(state, data);
         state.current = null;
         save(); render();
@@ -3106,8 +3160,15 @@ render();
 if (todoist.token) {
   document.getElementById('todoistTokenInput').value = todoist.token;
   document.getElementById('todoistFilterInput').value = todoist.filter || 'today';
+  const proxyEl = document.getElementById('todoistProxyInput');
+  if (proxyEl) proxyEl.value = todoist.corsProxy || '';
   setTodoistStatus('connected');
   fetchTodoistTasks();
+}
+// Mesmo sem token, pré-preenche o proxy se já configurado
+{
+  const proxyEl = document.getElementById('todoistProxyInput');
+  if (proxyEl && todoist.corsProxy) proxyEl.value = todoist.corsProxy;
 }
 
 // Auto-refresh tarefas Todoist a cada 60s
