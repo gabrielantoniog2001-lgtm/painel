@@ -1239,6 +1239,7 @@ const todoist = {
   token: null,
   filter: 'today | overdue',
   corsProxy: '',      // URL de proxy CORS (vazio = tenta direto)
+  userId: null,       // UID do usuário autenticado (pra filtrar completions próprias)
   tasks: [],          // tasks ativas que casam com o filtro
   projects: [],       // [{id, name, color}]
   projectMap: {},     // { id: { name, color } }
@@ -1321,6 +1322,23 @@ async function fetchTodoistTasks() {
   if (!todoist.token) return;
   setTodoistStatus('fetching');
   try {
+    // Pega UID do usuário (pra filtrar completions próprias)
+    if (!todoist.userId) {
+      try {
+        const me = await todoistRequest('https://api.todoist.com/api/v1/user');
+        todoist.userId = me && (me.id || me.user_id) || null;
+        console.log('[Painel] Todoist userId:', todoist.userId);
+      } catch (e) {
+        try {
+          const me = await todoistRequest('https://api.todoist.com/sync/v9/user');
+          todoist.userId = me && (me.id || me.user_id) || null;
+          console.log('[Painel] Todoist userId (sync v9):', todoist.userId);
+        } catch (e2) {
+          console.warn('[Painel] Não consegui pegar o userId — vai contar TODAS as conclusões em projetos compartilhados.');
+        }
+      }
+    }
+
     const filter = todoist.filter || 'today | overdue';
     // API v1 (a /rest/v2 foi deprecada em 2025)
     const url = `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`;
@@ -1368,13 +1386,25 @@ async function fetchTodoistTasks() {
       todoist.completedMonth = [];
     }
 
-    // Activity log para detectar adiamentos (best-effort) — pode não existir mais na v1
-    try {
-      const act = await todoistRequest(
-        `https://api.todoist.com/api/v1/activity?event_type=updated&object_type=item&limit=100`
-      );
-      todoist.activityMonth = (act && (act.events || act.results)) || [];
-    } catch (e) { todoist.activityMonth = []; }
+    // Activity log foi descontinuado na v1 — não tem mais como detectar "adiadas"
+    todoist.activityMonth = [];
+
+    // DEBUG: log resumo de hoje pra diagnóstico
+    const todayStart = startOfDay(new Date()).getTime();
+    const tomorrowStart = todayStart + 86400000;
+    const todayTasks = todoist.completedMonth.filter(c => {
+      const dateStr = c.completed_at || c.completed_date || c.date_completed;
+      if (!dateStr) return false;
+      const t = new Date(dateStr).getTime();
+      return t >= todayStart && t < tomorrowStart;
+    });
+    console.log(`[Painel] Hoje range: ${new Date(todayStart).toISOString()} → ${new Date(tomorrowStart).toISOString()}`);
+    console.log(`[Painel] Tasks contadas como hoje: ${todayTasks.length}`);
+    console.log(`[Painel] Sample completed_at values (primeiras 10):`,
+      todoist.completedMonth.slice(0, 10).map(c => c.completed_at || c.completed_date));
+    if (todayTasks.length > 0) {
+      console.log(`[Painel] Hoje (sample):`, todayTasks[0]);
+    }
 
     todoist.lastFetch = Date.now();
     saveTodoistConfig();
@@ -1436,7 +1466,11 @@ const PRIORITY_NAMES = { 4: 'P1', 3: 'P2', 2: 'P3', 1: 'P4' };
 
 function todoistCompletedInRange(fromMs, toMs) {
   return todoist.completedMonth.filter(c => {
-    // v1 API pode usar `completed_at`, `completed_date`, ou `date_completed`
+    // Filtra só tasks que VOCÊ completou (em projetos compartilhados o sócio também conta na API)
+    if (todoist.userId) {
+      const completedByUid = c.completed_by_uid || (c.item_object && c.item_object.completed_by_uid);
+      if (completedByUid && String(completedByUid) !== String(todoist.userId)) return false;
+    }
     const dateStr = c.completed_at || c.completed_date || c.date_completed
       || (c.item_object && (c.item_object.completed_at || c.item_object.date_completed));
     if (!dateStr) return false;
