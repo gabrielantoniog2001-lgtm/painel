@@ -1357,33 +1357,59 @@ async function fetchTodoistTasks() {
       }
     } catch (e) { /* ignora se falhar */ }
 
-    // Completed do último mês (pra reports) — pagina via cursor pra pegar tudo
+    // Completed do último mês (pra reports)
     const since = new Date(); since.setDate(since.getDate() - 31); since.setHours(0,0,0,0);
     const until = new Date(); until.setHours(23,59,59,999);
     const sinceStr = since.toISOString().replace(/\.\d{3}Z$/, 'Z');
     const untilStr = until.toISOString().replace(/\.\d{3}Z$/, 'Z');
     todoist.completedMonth = [];
+
+    // Tenta primeiro o sync/v9/completed/get_all (inclui checks de recorrentes — bate com o "X/8" do Todoist).
+    // Se falhar, fallback pro v1/by_completion_date (só tasks arquivadas permanentemente).
+    let syncWorked = false;
     try {
-      let cursor = null;
+      let offset = 0;
+      const limit = 200;
       let pageCount = 0;
-      do {
-        const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
+      while (true) {
         const comp = await todoistRequest(
-          `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200${cursorParam}`
+          `https://api.todoist.com/sync/v9/completed/get_all?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=${limit}&offset=${offset}&annotate_items=true`
         );
-        const items = (comp && (comp.items || comp.results)) || [];
+        const items = (comp && comp.items) || [];
         todoist.completedMonth.push(...items);
-        cursor = comp && comp.next_cursor;
+        if (items.length < limit) break;
+        offset += limit;
         pageCount++;
-        if (pageCount > 20) break; // safety: max 20 páginas (~4000 tasks)
-      } while (cursor);
-      console.log(`[Painel] Todoist completed fetched: ${todoist.completedMonth.length} tasks em ${pageCount} página(s)`);
+        if (pageCount > 20) break;
+      }
+      syncWorked = true;
+      console.log(`[Painel] sync/v9 completed fetched (inclui recorrentes): ${todoist.completedMonth.length} tasks`);
       if (todoist.completedMonth.length > 0) {
-        console.log('[Painel] Primeira completed (sample):', todoist.completedMonth[0]);
+        console.log('[Painel] Primeira completed (sample sync v9):', todoist.completedMonth[0]);
       }
     } catch (e) {
-      console.warn('[Painel] Erro ao buscar completed:', e.message);
-      todoist.completedMonth = [];
+      console.warn('[Painel] sync/v9 falhou, tentando v1:', e.message);
+    }
+
+    if (!syncWorked) {
+      try {
+        let cursor = null;
+        let pageCount = 0;
+        do {
+          const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
+          const comp = await todoistRequest(
+            `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200${cursorParam}`
+          );
+          const items = (comp && (comp.items || comp.results)) || [];
+          todoist.completedMonth.push(...items);
+          cursor = comp && comp.next_cursor;
+          pageCount++;
+          if (pageCount > 20) break;
+        } while (cursor);
+        console.log(`[Painel] v1 completed fetched (sem recorrentes): ${todoist.completedMonth.length} tasks`);
+      } catch (e) {
+        console.warn('[Painel] Erro ao buscar completed (ambos endpoints falharam):', e.message);
+      }
     }
 
     // Activity log foi descontinuado na v1 — não tem mais como detectar "adiadas"
@@ -1400,13 +1426,13 @@ async function fetchTodoistTasks() {
     });
     const todayMine = todayAll.filter(c => {
       if (!todoist.userId) return true;
-      const uid = c.completed_by_uid || (c.item_object && c.item_object.completed_by_uid);
+      const uid = c.completed_by_uid || c.user_id || (c.item_object && (c.item_object.completed_by_uid || c.item_object.user_id));
       return !uid || String(uid) === String(todoist.userId);
     });
     // Conta por UID pra ver quem mais completou
     const byUid = {};
     for (const c of todoist.completedMonth) {
-      const uid = String(c.completed_by_uid || 'unknown');
+      const uid = String(c.completed_by_uid || c.user_id || (c.item_object && (c.item_object.completed_by_uid || c.item_object.user_id)) || 'unknown');
       byUid[uid] = (byUid[uid] || 0) + 1;
     }
     console.log(`[Painel] Hoje range LOCAL: ${new Date(todayStart).toLocaleString()} → ${new Date(tomorrowStart).toLocaleString()}`);
@@ -1477,10 +1503,11 @@ const PRIORITY_NAMES = { 4: 'P1', 3: 'P2', 2: 'P3', 1: 'P4' };
 
 function todoistCompletedInRange(fromMs, toMs) {
   return todoist.completedMonth.filter(c => {
-    // Filtra só tasks que VOCÊ completou (em projetos compartilhados o sócio também conta na API)
+    // Filtra só tasks que VOCÊ completou (sync v9 usa user_id; v1 usa completed_by_uid)
     if (todoist.userId) {
-      const completedByUid = c.completed_by_uid || (c.item_object && c.item_object.completed_by_uid);
-      if (completedByUid && String(completedByUid) !== String(todoist.userId)) return false;
+      const uid = c.completed_by_uid || c.user_id
+        || (c.item_object && (c.item_object.completed_by_uid || c.item_object.user_id));
+      if (uid && String(uid) !== String(todoist.userId)) return false;
     }
     const dateStr = c.completed_at || c.completed_date || c.date_completed
       || (c.item_object && (c.item_object.completed_at || c.item_object.date_completed));
