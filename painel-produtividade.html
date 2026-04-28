@@ -1322,14 +1322,17 @@ async function fetchTodoistTasks() {
   setTodoistStatus('fetching');
   try {
     const filter = todoist.filter || 'today | overdue';
-    const url = `https://api.todoist.com/rest/v2/tasks?filter=${encodeURIComponent(filter)}`;
-    const tasks = await todoistRequest(url);
-    todoist.tasks = Array.isArray(tasks) ? tasks : [];
+    // API v1 (a /rest/v2 foi deprecada em 2025)
+    const url = `https://api.todoist.com/api/v1/tasks/filter?query=${encodeURIComponent(filter)}`;
+    const resp = await todoistRequest(url);
+    // O retorno pode ser um array direto OU um objeto com {results: [...]}
+    todoist.tasks = Array.isArray(resp) ? resp : (resp && Array.isArray(resp.results) ? resp.results : []);
 
     // Fetch projects (cache mapeamento id → name/color)
     try {
-      const projects = await todoistRequest('https://api.todoist.com/rest/v2/projects');
-      todoist.projects = Array.isArray(projects) ? projects : [];
+      const projResp = await todoistRequest('https://api.todoist.com/api/v1/projects');
+      const projects = Array.isArray(projResp) ? projResp : (projResp && Array.isArray(projResp.results) ? projResp.results : []);
+      todoist.projects = projects;
       todoist.projectMap = {};
       for (const p of todoist.projects) {
         todoist.projectMap[p.id] = { name: p.name, color: p.color };
@@ -1338,20 +1341,22 @@ async function fetchTodoistTasks() {
 
     // Completed do último mês (pra reports)
     const since = new Date(); since.setDate(since.getDate() - 31); since.setHours(0,0,0,0);
+    const until = new Date(); until.setHours(23,59,59,999);
     const sinceStr = since.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    const untilStr = until.toISOString().replace(/\.\d{3}Z$/, 'Z');
     try {
       const comp = await todoistRequest(
-        `https://api.todoist.com/sync/v9/completed/get_all?since=${encodeURIComponent(sinceStr)}&limit=200&annotate_items=true`
+        `https://api.todoist.com/api/v1/tasks/completed/by_completion_date?since=${encodeURIComponent(sinceStr)}&until=${encodeURIComponent(untilStr)}&limit=200`
       );
-      todoist.completedMonth = (comp && comp.items) ? comp.items : [];
+      todoist.completedMonth = (comp && (comp.items || comp.results)) || [];
     } catch (e) { todoist.completedMonth = []; }
 
-    // Activity log para detectar adiamentos (best-effort)
+    // Activity log para detectar adiamentos (best-effort) — pode não existir mais na v1
     try {
       const act = await todoistRequest(
-        `https://api.todoist.com/sync/v9/activity/get?event_type=updated&object_type=item&limit=100`
+        `https://api.todoist.com/api/v1/activity?event_type=updated&object_type=item&limit=100`
       );
-      todoist.activityMonth = (act && act.events) ? act.events : [];
+      todoist.activityMonth = (act && (act.events || act.results)) || [];
     } catch (e) { todoist.activityMonth = []; }
 
     todoist.lastFetch = Date.now();
@@ -1365,7 +1370,7 @@ async function fetchTodoistTasks() {
 
 async function completeTodoistTask(id) {
   try {
-    await todoistRequest(`https://api.todoist.com/rest/v2/tasks/${id}/close`, { method: 'POST' });
+    await todoistRequest(`https://api.todoist.com/api/v1/tasks/${id}/close`, { method: 'POST' });
     todoist.tasks = todoist.tasks.filter(t => String(t.id) !== String(id));
     render();
     // Refresh em segundo plano pra atualizar relatórios
