@@ -132,7 +132,7 @@ body {
 }
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -815,6 +815,15 @@ body.light .prio-pill.p4 { color: var(--text-muted); }
     </div>
     <div class="card kpi">
       <div class="kpi-header">
+        <div class="kpi-icon">📆</div>
+        <span>Meta semanal</span>
+      </div>
+      <div class="kpi-value" id="kpiWeekGoal">0%</div>
+      <div class="progress"><div class="progress-fill" id="weekGoalFill" style="width:0%"></div></div>
+      <div class="kpi-trend neutral" id="weekGoalRemaining">Faltam 36h 00m</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-header">
         <div class="kpi-icon">🔥</div>
         <span>Sequência</span>
       </div>
@@ -1112,8 +1121,20 @@ body.light .prio-pill.p4 { color: var(--text-muted); }
   <div class="card" style="margin-bottom: 16px;">
     <div class="card-title">Configurações & Backup</div>
     <div class="settings-row">
-      <span class="label">Meta diária (horas)</span>
+      <span class="label">Meta diária — alvo (horas)</span>
       <input type="number" class="input-num" id="goalInput" min="1" max="24" step="0.5" value="8">
+    </div>
+    <div class="settings-row">
+      <span class="label">Mínimo diário (horas) <span style="color:var(--text-dim); font-size:11px;">— sequência só conta dias acima disso</span></span>
+      <input type="number" class="input-num" id="minDailyInput" min="0" max="24" step="0.5" value="6">
+    </div>
+    <div class="settings-row">
+      <span class="label">Meta semanal — alvo (horas)</span>
+      <input type="number" class="input-num" id="weekGoalInput" min="1" max="168" step="1" value="36">
+    </div>
+    <div class="settings-row">
+      <span class="label">Mínimo semanal (horas) <span style="color:var(--text-dim); font-size:11px;">— piso aceitável da semana</span></span>
+      <input type="number" class="input-num" id="minWeeklyInput" min="0" max="168" step="1" value="30">
     </div>
     <div class="settings-row">
       <span class="label">Backup dos dados</span>
@@ -1229,6 +1250,11 @@ function load() {
   // Garante que sleeps/workouts existem (compat com dados antigos)
   if (!Array.isArray(state.sleeps)) state.sleeps = [];
   if (!Array.isArray(state.workouts)) state.workouts = [];
+  if (!state.settings) state.settings = {};
+  if (typeof state.settings.dailyGoalH !== 'number') state.settings.dailyGoalH = 8;
+  if (typeof state.settings.weeklyGoalH !== 'number') state.settings.weeklyGoalH = 36;
+  if (typeof state.settings.minDailyH !== 'number') state.settings.minDailyH = 6;
+  if (typeof state.settings.minWeeklyH !== 'number') state.settings.minWeeklyH = 30;
 }
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -2054,11 +2080,14 @@ function hourlyData() {
   return buckets.map(s => (s/60)/n); // média de minutos por dia trabalhado
 }
 function streak() {
+  // Conta dias consecutivos que bateram o mínimo diário (em segundos)
+  const minSec = (state.settings.minDailyH || 0) * 3600;
   let count = 0;
   let d = startOfDay(new Date());
-  // if today has work, start counting from today; else start from yesterday
-  if (sumOnDate(d) === 0) d.setDate(d.getDate() - 1);
-  while (sumOnDate(d) > 0) {
+  // if today is below min, don't penalize — start from yesterday
+  if (sumOnDate(d) < minSec) d.setDate(d.getDate() - 1);
+  while (sumOnDate(d) >= minSec && (sumOnDate(d) > 0 || minSec > 0)) {
+    if (sumOnDate(d) < minSec) break;
     count++;
     d.setDate(d.getDate() - 1);
     if (count > 3650) break;
@@ -2724,15 +2753,52 @@ function render(opts) {
   document.getElementById('goalFill').style.background =
     rawPct >= 100 ? 'var(--accent)' : rawPct >= 50 ? 'var(--accent)' : 'var(--warning)';
   const remaining = goalSec - todaySec;
+  const minDailySec = (state.settings.minDailyH || 0) * 3600;
   const goalRemEl = document.getElementById('goalRemaining');
   goalRemEl.classList.remove('up','down','neutral');
   if (remaining <= 0) {
     const extra = Math.abs(remaining);
     goalRemEl.textContent = extra > 60 ? `🎉 Meta batida +${fmtHM(extra)}` : '🎉 Meta atingida!';
     goalRemEl.classList.add('up');
+  } else if (minDailySec > 0 && todaySec >= minDailySec) {
+    goalRemEl.textContent = `✅ Mínimo OK · faltam ${fmtHM(remaining)} pra meta`;
+    goalRemEl.classList.add('up');
+  } else if (minDailySec > 0) {
+    const minRemaining = minDailySec - todaySec;
+    goalRemEl.textContent = `⚠️ Faltam ${fmtHM(minRemaining)} pro mínimo (${state.settings.minDailyH}h)`;
+    goalRemEl.classList.add('down');
   } else {
     goalRemEl.textContent = `Faltam ${fmtHM(remaining)} (de ${state.settings.dailyGoalH}h)`;
     goalRemEl.classList.add('neutral');
+  }
+
+  // Meta semanal
+  const weekGoalH = state.settings.weeklyGoalH || 36;
+  const weekGoalSec = weekGoalH * 3600;
+  const rawWeekPct = (weekSec / weekGoalSec) * 100;
+  const weekPct = Math.min(100, rawWeekPct);
+  document.getElementById('kpiWeekGoal').textContent = Math.round(rawWeekPct) + '%';
+  document.getElementById('weekGoalFill').style.width = weekPct + '%';
+  document.getElementById('weekGoalFill').style.background =
+    rawWeekPct >= 100 ? 'var(--accent)' : rawWeekPct >= 50 ? 'var(--accent)' : 'var(--warning)';
+  const weekRemaining = weekGoalSec - weekSec;
+  const minWeeklySec = (state.settings.minWeeklyH || 0) * 3600;
+  const weekRemEl = document.getElementById('weekGoalRemaining');
+  weekRemEl.classList.remove('up','down','neutral');
+  if (weekRemaining <= 0) {
+    const extra = Math.abs(weekRemaining);
+    weekRemEl.textContent = extra > 60 ? `🎉 Semana batida +${fmtHM(extra)}` : '🎉 Meta semanal atingida!';
+    weekRemEl.classList.add('up');
+  } else if (minWeeklySec > 0 && weekSec >= minWeeklySec) {
+    weekRemEl.textContent = `✅ Mínimo OK · faltam ${fmtHM(weekRemaining)} pra meta`;
+    weekRemEl.classList.add('up');
+  } else if (minWeeklySec > 0) {
+    const minRemaining = minWeeklySec - weekSec;
+    weekRemEl.textContent = `⚠️ Faltam ${fmtHM(minRemaining)} pro mínimo (${state.settings.minWeeklyH}h)`;
+    weekRemEl.classList.add('down');
+  } else {
+    weekRemEl.textContent = `Faltam ${fmtHM(weekRemaining)} (de ${weekGoalH}h)`;
+    weekRemEl.classList.add('neutral');
   }
 
   // Streak
@@ -2792,6 +2858,9 @@ function render(opts) {
 
   // Settings input
   document.getElementById('goalInput').value = state.settings.dailyGoalH;
+  document.getElementById('weekGoalInput').value = state.settings.weeklyGoalH || 36;
+  document.getElementById('minDailyInput').value = state.settings.minDailyH ?? 6;
+  document.getElementById('minWeeklyInput').value = state.settings.minWeeklyH ?? 30;
 }
 
 function setTrend(id, cur, prev, label) {
@@ -3195,6 +3264,18 @@ document.getElementById('btnStop').addEventListener('click', () => {
 document.getElementById('goalInput').addEventListener('change', e => {
   const v = parseFloat(e.target.value);
   if (!isNaN(v) && v > 0) { state.settings.dailyGoalH = v; save(); render(); }
+});
+document.getElementById('weekGoalInput').addEventListener('change', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v) && v > 0) { state.settings.weeklyGoalH = v; save(); render(); }
+});
+document.getElementById('minDailyInput').addEventListener('change', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v) && v >= 0) { state.settings.minDailyH = v; save(); render(); }
+});
+document.getElementById('minWeeklyInput').addEventListener('change', e => {
+  const v = parseFloat(e.target.value);
+  if (!isNaN(v) && v >= 0) { state.settings.minWeeklyH = v; save(); render(); }
 });
 document.getElementById('exportBtn').addEventListener('click', exportData);
 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
